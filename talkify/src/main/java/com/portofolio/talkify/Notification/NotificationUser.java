@@ -18,5 +18,5 @@ public class NotificationUser {
     private String message;
     private Boolean isSeen;
     private Boolean isUnsend;
-    private byte[] image; 
+    private MessageTYPE messageTYPE;
 }

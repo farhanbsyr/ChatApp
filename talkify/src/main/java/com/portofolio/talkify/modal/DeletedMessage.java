@@ -15,9 +15,23 @@ public class DeletedMessage  extends BaseProperties{
     private Long id;
     private Long convertationId;
     private Long users;
+    private String messageTYPE;
+    private Long messageId;
 
+    public Long getMessageId() {
+        return messageId;
+    }
+    public void setMessageId(Long messageId) {
+        this.messageId = messageId;
+    }
     public Long getId() {
         return id;
+    }
+    public String getMessageTYPE() {
+        return messageTYPE;
+    }
+    public void setMessageTYPE(String messageTYPE) {
+        this.messageTYPE = messageTYPE;
     }
     public void setId(Long id) {
         this.id = id;

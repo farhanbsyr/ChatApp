@@ -1,14 +1,42 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import LeftContent from "./LeftContent";
 import RightContent from "./RightContent";
 import axios from "axios";
 import { LastMessage } from "../../types";
-import SockJS from "sockjs-client";
-import { Stomp } from "@stomp/stompjs";
+import { Client } from "@stomp/stompjs";
 
 interface ProfileImage {
   image: string;
   userId: number;
+}
+
+interface sendUser {
+  convertationId: number;
+  receiverId: number;
+}
+
+interface userMessage {
+  id: number;
+  receiverId?: number;
+  senderId: number;
+  isDelete: boolean;
+  isUnsent: boolean;
+  isSeen?: boolean;
+  seen?: object;
+  message: string;
+  name?: string;
+  isGroup: boolean;
+  createOn: string;
+  image?: any;
+}
+
+interface notification {
+  convertationId: number;
+  senderId: number;
+  receiverId: number;
+  message: string;
+  isSeen: boolean;
+  isUnsend: boolean;
 }
 
 interface userChat {
@@ -29,50 +57,80 @@ interface userChat {
 
 const ContentLayout = () => {
   const [chat, setChat] = useState<userChat[] | null>(null);
-  const [stompClient, setStompClient] = useState<any>(null);
   const [convertationId, setConvertationId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [sendUser, setSendUser] = useState<sendUser | null>(null);
+  const [messages, setMessages] = useState<userMessage[]>([]);
   const [typeConvertation, setTypeConvertation] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [member, setMember] = useState<number | null>(null);
   let value: number = 1;
+  // sementara userId menggunakan value
+
+  const hasConnected = useRef(false);
+  const clientRef = useRef<Client | null>(null);
 
   const changeConvertation = (
     convertation: number,
     type: string,
     name: string,
-    member: number
+    member: number,
+    sendUser: sendUser
   ) => {
     setConvertationId(convertation);
     setTypeConvertation(type);
     setName(name);
     setMember(member);
+    setSendUser(sendUser);
+    setMessages([]);
+  };
+  useEffect(() => {
+    console.log(sendUser);
+  }, [sendUser]);
+
+  useEffect(() => {
+    console.log(typeConvertation);
+  }, [typeConvertation]);
+
+  const initialiseConnections = () => {
+    const client = new Client({
+      brokerURL: "ws://localhost:8080/ws",
+      onConnect: () => {
+        console.log("Connected!");
+        client.subscribe(`/topic/${3}`, (response: any) => {
+          const parsedResponse: userMessage = JSON.parse(response.body);
+          console.log("Received : ", parsedResponse);
+          setMessages((preventMessages) => [
+            ...preventMessages,
+            parsedResponse,
+          ]);
+        });
+
+        client.subscribe(`/topic/common`, (response: any) => {
+          console.log(response);
+          const parsedResponse: notification = JSON.parse(response.body);
+          console.log("Received : ", parsedResponse);
+        });
+      },
+      onWebSocketError: () => {
+        console.log("Error with the websocket");
+      },
+      onStompError: () => {
+        console.log("Stomp error");
+      },
+      onDisconnect: () => {
+        console.log("Disconnected");
+      },
+    });
+    client.activate();
+
+    clientRef.current = client;
   };
 
   useEffect(() => {
-    console.log(convertationId, typeConvertation, "Test");
-  }, [convertationId, typeConvertation]);
-
-  useEffect(() => {
-    const socket = new SockJS("http://localhost:8080/ws");
-    const client = Stomp.over(socket);
-
-    client.connect({}, () => {
-      const userId: string = value + "";
-
-      client.subscribe(`/user/${userId}/chat`, (message) => {
-        const newMessage = JSON.parse(message.body);
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
-      });
-    });
-
-    setStompClient(client);
-
-    return () => {
-      if (stompClient) {
-        stompClient.disconnect();
-      }
-    };
+    if (!hasConnected.current) {
+      initialiseConnections();
+      hasConnected.current = true;
+    }
   }, []);
 
   const fetchAllFriendsData = async (value: number) => {
@@ -81,7 +139,6 @@ const ContentLayout = () => {
         `http://localhost:8080/api/chat/${value}`
       );
       const data = response.data.data;
-      console.log(data);
 
       const mappedData: userChat[] = data.map((item: any) => ({
         id: item.id,
@@ -98,7 +155,6 @@ const ContentLayout = () => {
         userGroup: item.userGroupId,
         memberGroup: item.memberGroup,
       }));
-      console.log(mappedData);
 
       setChat(mappedData);
     } catch (error) {
@@ -110,34 +166,68 @@ const ContentLayout = () => {
     fetchAllFriendsData(value);
   }, []);
 
-  const sendMessage = (
-    userId: number,
-    notification: any,
-    messageType: string
+  useEffect(() => {
+    if (convertationId != null) {
+      fetchMessageChat(typeConvertation);
+    }
+  }, [convertationId, typeConvertation]);
+
+  const fetchMessageChat = async (messageTYPE: string | null) => {
+    if (convertationId === null) return;
+
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/chat/getMessage/${convertationId}?message=${messageTYPE}`
+      );
+
+      const data = response.data.data;
+      console.log(data);
+      const message: userMessage[] = data.map((value: any) => ({
+        createOn: value.createdOn,
+        senderId: value.senderId,
+        receiverId: value.receiverId,
+        id: value.id,
+        isDelete: value.isDelete,
+        isSeen: value.isSeen,
+        seen: value.seen,
+        isUnsent: value.isUnsent,
+        message: value.message,
+        isGroup: value.isGroup,
+        name: value.name ? value.name : "unknown",
+        image: value.profileImage,
+      }));
+
+      setMessages(message);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleSendMessage = (
+    message: string,
+    isSeen: boolean,
+    isUnsend: boolean
   ) => {
+    const client = clientRef.current;
+    if (!client) {
+      console.log("Client is not yet active");
+      return;
+    }
+
     const payload = {
-      userId: userId,
-      message: notification,
-      messageType: messageType,
+      convertationId: convertationId,
+      senderId: value,
+      receiverId: sendUser?.receiverId,
+      message: message,
+      isSeen: isSeen,
+      isUnsend: isUnsend,
+      messageTYPE: typeConvertation,
     };
 
-    fetch(`http://localhost:8080/sendMessage/${userId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    client.publish({
+      destination: "/app/sendMessage",
       body: JSON.stringify(payload),
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log("Pesan berhasil dikirim!");
-        } else {
-          console.error("Terjadi kesalahan saat mengirim pesan.");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    });
   };
   return (
     <div className="flex flex-row h-full gap-4 rounded-3xl">
@@ -152,10 +242,9 @@ const ContentLayout = () => {
       <div className="h-full w-[70%] py-4">
         {/* from flowbite */}
         <RightContent
-          sendMessage={sendMessage}
+          sendMessage={handleSendMessage}
+          messages={messages}
           userId={value}
-          convertation={convertationId}
-          typeMessage={typeConvertation}
           name={name}
           member={member}
         />

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,6 +42,7 @@ public class ApiChatController {
 
     @Autowired
     private UserConvertaionRepository userConvertaionRepository;
+    
     @Autowired
     private ChatService chatService;
 
@@ -109,13 +111,15 @@ public class ApiChatController {
                 }
                 ArrayList<Object> userMessages = chatService.getTXTMessages(convertationId);
                 
-                return ResponseUtil.generateSuccessResponse("Success to get messages", userMessages);
-                
+                return ResponseUtil.generateSuccessResponse("Success to get messages", userMessages);    
             } 
+
             Group group = groupRepository.findById(convertationId).orElse(null);
+            
             if (group == null) {
                 return ResponseUtil.generateErrorResponse("Group is not found", group, HttpStatus.NOT_FOUND);
             }
+
             ArrayList<Object> groupMessages = chatService.getGRPMessages(convertationId);
 
             if (groupMessages.size() == 0) {
@@ -130,21 +134,34 @@ public class ApiChatController {
     }
 
     @PostMapping("sendMessage/{id}")
-    public ResponseEntity<ApiResponse<Object>> saveMessage(@PathVariable("id") Long userId, NotificationUser notificationUser, MessageTYPE messageTYPE){
+    public ResponseEntity<ApiResponse<Object>> saveMessage(
+        @PathVariable("id") Long userId,
+        @RequestBody NotificationUser notificationUser, 
+        @RequestParam MessageTYPE messageTYPE
+        ){
         try {
-            User user = userRepository.findById(userId).orElse(null);
-            
-            if (user == null) {
-                return ResponseUtil.generateErrorResponse("Receiver is not found", user, HttpStatus.NOT_FOUND);
-            }
 
+            if (messageTYPE == MessageTYPE.TEXT) {
+                User user = userRepository.findById(userId).orElse(null);
+                if (user == null ) {
+                    return ResponseUtil.generateErrorResponse("Receiver is not found", user, HttpStatus.NOT_FOUND);
+                }
+            } 
+
+            if (messageTYPE == MessageTYPE.GROUP) {
+                Group group = groupRepository.findById(userId).orElse(null);
+                if (group == null) {
+                    return ResponseUtil.generateErrorResponse("Group is not found", group, HttpStatus.NOT_FOUND);
+                }
+            }
+            
             if (messageTYPE == MessageTYPE.TEXT){
                 chatService.saveMessageText(notificationUser);
             } else {
                 chatService.saveMessageGroup(notificationUser);
             }
             
-            return null;
+            return ResponseUtil.generateSuccessResponse("Success to send message", null);
         } catch (Exception e) {
             return ResponseUtil.generateErrorResponse("Error!", e.getMessage(), HttpStatus.BAD_REQUEST);
         }

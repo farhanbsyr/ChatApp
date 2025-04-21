@@ -8,8 +8,8 @@ const ProfileBox: React.FC<ProfileBoxProps> = ({ name, member }) => {
     <div className="flex flex-row ">
       <div className="flex flex-col">
         <div className="text-base font-semibold">{name}</div>
-        <div className="text-[10px] font-light">
-          {member != null ? member : ""}
+        <div className="text-[10px] font-medium">
+          {member != null ? <>Members: {member}</> : ""}
         </div>
       </div>
     </div>

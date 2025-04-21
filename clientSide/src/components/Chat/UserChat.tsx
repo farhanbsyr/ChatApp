@@ -22,7 +22,7 @@ const UserChat: React.FC<UserChatProps> = ({
   time,
 }) => {
   return (
-    <div className="flex flex-row items-center justify-between p-2 bg-opacity-75 rounded-md bg-blue-50">
+    <div className="flex flex-row items-center justify-between p-2 bg-opacity-75 rounded-md">
       {/* image profile user/group */}
       <div className="flex flex-row gap-3 ">
         <div className="">

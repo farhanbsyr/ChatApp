@@ -1,5 +1,6 @@
 package com.portofolio.talkify.Notification;
 
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +14,12 @@ public class NotificationService {
      
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void sendNotification(String userId, NotificationUser notificationUser){
-        log.info("Sending WS notification to {} with payload", userId, notificationUser);
+    @MessageMapping("/sendMessage")
+    public void sendNotification( NotificationUser notificationUser){
+        log.info("Sending WS notification to {} with payload", notificationUser.getReceiverId(), notificationUser);
         
         messagingTemplate.convertAndSendToUser(
-            userId, 
+            String.valueOf(notificationUser.getReceiverId()), 
             "/chat", 
             notificationUser
         );

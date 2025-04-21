@@ -5,7 +5,7 @@ interface ChatProps {
   name?: string;
   time: string;
   message: string;
-  isSeen: boolean;
+  isSeen?: boolean;
   showedGrup: boolean;
   profile: any;
 }

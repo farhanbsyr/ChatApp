@@ -1,17 +1,14 @@
-import React, { useEffect, useState } from "react";
 import Chat from "../Chat/Chat";
 import InputMsg from "../Chat/InputMsg";
 import ProfileBox from "../Chat/ProfileBox";
-import axios from "axios";
 import { ScrollArea } from "../ui/scroll-area";
 
 interface RightContentProps {
   userId: number;
   sendMessage: any;
-  convertation: number | null;
-  typeMessage: string | null;
   name: string | null;
   member: number | null;
+  messages: userMessage[];
 }
 
 interface userMessage {
@@ -20,66 +17,22 @@ interface userMessage {
   senderId: number;
   isDelete: boolean;
   isUnsent: boolean;
-  isSeen: boolean;
+  isSeen?: boolean;
+  seen?: object;
   message: string;
   name?: string;
   isGroup: boolean;
   createOn: string;
-  image: any;
+  image?: any;
 }
 
 const RightContent: React.FC<RightContentProps> = ({
   userId,
   sendMessage,
-  convertation,
-  typeMessage,
   name,
   member,
+  messages,
 }) => {
-  const [messages, setMessages] = useState<userMessage[]>([]);
-  // const [convertationId, setConvertationId] = useState<number | null>();
-  // const [message, setMessage] = useState<userMessage>();
-  // const [time, setTime] = useState<string>("");
-
-  useEffect(() => {
-    if (convertation != null) {
-      fetchMessageChat(typeMessage);
-    }
-  }, [convertation, typeMessage]);
-
-  const fetchMessageChat = async (messageTYPE: string | null) => {
-    console.log("kocak");
-    if (convertation === null) return;
-
-    console.log("convertation:", convertation);
-
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/api/chat/getMessage/${convertation}?message=${messageTYPE}`
-      );
-      const data = response.data.data;
-      console.log("fetch data:", data);
-
-      const newMessages: userMessage[] = data.map((value: any) => ({
-        createOn: value.createdOn,
-        senderId: value.senderId,
-        receiverId: value.receiverId,
-        id: value.id,
-        isDelete: value.isDelete,
-        isSeen: value.isSeen,
-        isUnsent: value.isUnsent,
-        message: value.message,
-        isGroup: value.isGroup,
-        name: value.name ? value.name : "unknown",
-        image: "Test",
-      }));
-
-      setMessages(newMessages);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   userId = 1;
 
   return (
@@ -105,6 +58,7 @@ const RightContent: React.FC<RightContentProps> = ({
 
           const formattedTime = localTime.substring(12, 17);
 
+          // ini masih hardcord, nanti coba test
           if (value.senderId == userId) {
             positionMsg = "justify-end";
           }
@@ -131,7 +85,7 @@ const RightContent: React.FC<RightContentProps> = ({
         })}
       </ScrollArea>
       {/* <Chat /> */}
-      <InputMsg />
+      <InputMsg sendMessage={sendMessage} />
       {/* <ContactProfile /> */}
     </div>
   );

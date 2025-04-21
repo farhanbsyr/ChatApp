@@ -18,4 +18,9 @@ public interface UserGroupsRepository extends JpaRepository<UserGroups, Long> {
             select * from user_groups ug where group_id = ?1;
             """, nativeQuery = true)
     List<UserGroups> listGroupsByGroupId(Long groupId);
+
+    @Query(value  = """
+        select * from user_groups ug where group_id = ?1
+                    """, nativeQuery = true)
+        List<UserGroups> listUserGroupByIdGroup (Long id);
 }

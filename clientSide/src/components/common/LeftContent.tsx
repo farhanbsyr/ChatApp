@@ -15,6 +15,11 @@ interface LeftContentProps {
   onChangeConvertation: any;
 }
 
+interface sendUser {
+  convertationId: number;
+  receiverId: number;
+}
+
 interface UserChat {
   id: number;
   handphoneNumber: number;
@@ -36,7 +41,7 @@ const LeftContent: React.FC<LeftContentProps> = ({
   userId,
   onChangeConvertation,
 }) => {
-  const [selected, setSelected] = useState<boolean>(false);
+  const [selected, setSelected] = useState<string>("");
   const now = new Date();
   const nowToday = now.getDate();
   const nowDay = now.getDay();
@@ -84,9 +89,10 @@ const LeftContent: React.FC<LeftContentProps> = ({
     id: number,
     type: string,
     name: string,
-    member: number
+    member: number,
+    sendUser: sendUser
   ) => {
-    onChangeConvertation(id, type, name, member);
+    onChangeConvertation(id, type, name, member, sendUser);
   };
 
   return (
@@ -136,8 +142,6 @@ const LeftContent: React.FC<LeftContentProps> = ({
               let convertation: number =
                 item.isGroup == true ? item.id : item.userConvertationId;
 
-              console.log(item.userConvertationId);
-
               const date = new Date(item.createdOn);
 
               const localTime = date.toLocaleString("en-GB", {
@@ -162,6 +166,13 @@ const LeftContent: React.FC<LeftContentProps> = ({
                 isGroup = "TEXT";
               }
 
+              let key = item.isGroup ? item.id + isGroup + "" : item.id + "";
+
+              let sendUser: sendUser = {
+                convertationId: convertation,
+                receiverId: item.id,
+              };
+
               return (
                 <div
                   key={item.isGroup ? item.id + isGroup : item.id}
@@ -170,9 +181,14 @@ const LeftContent: React.FC<LeftContentProps> = ({
                       convertation,
                       isGroup,
                       item.name,
-                      item.memberGroup
+                      item.memberGroup,
+                      sendUser
+                    );
+                    setSelected(
+                      item.isGroup ? item.id + isGroup + "" : item.id + ""
                     );
                   }}
+                  className={selected == key ? "bg-blue-50" : ""}
                 >
                   <UserChat
                     name={item.name}

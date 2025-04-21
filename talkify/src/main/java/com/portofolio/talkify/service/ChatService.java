@@ -9,8 +9,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.portofolio.talkify.Notification.NotificationService;
+import com.portofolio.talkify.Notification.MessageTYPE;
 import com.portofolio.talkify.Notification.NotificationUser;
+import com.portofolio.talkify.modal.DeletedMessage;
 import com.portofolio.talkify.modal.Group;
 import com.portofolio.talkify.modal.GroupMessage;
 import com.portofolio.talkify.modal.User;
@@ -18,6 +19,7 @@ import com.portofolio.talkify.modal.UserConvertation;
 import com.portofolio.talkify.modal.UserFriends;
 import com.portofolio.talkify.modal.UserGroups;
 import com.portofolio.talkify.modal.UserMessage;
+import com.portofolio.talkify.repository.DeleteMessageRepository;
 import com.portofolio.talkify.repository.GroupMessageRepository;
 import com.portofolio.talkify.repository.GroupRepository;
 import com.portofolio.talkify.repository.UserFriendsRepository;
@@ -46,10 +48,11 @@ public class ChatService {
     private GroupRepository groupRepository;
 
     @Autowired
+    private DeleteMessageRepository deleteMessageRepository;
+
+    @Autowired
     private UserGroupsRepository userGroupsRepository;
-
-    private NotificationService notificationService;
-
+   
     public Map<String, Object> getUserChat (Long userId, UserConvertation userConvertation){
         Map<String, Object> userChatProfile = new HashMap<>();
         Map<String, Object> profileImageResponse = new HashMap<>();
@@ -185,9 +188,9 @@ public class ChatService {
         detailGroupUser.put("isGroup", true);
 
         return detailGroupUser;
-    }
+    } 
 
-    public void saveMessageText(NotificationUser notificationUser){
+    public Object saveMessageText(NotificationUser notificationUser){
         UserMessage userMessage = new UserMessage();
 
         userMessage.setIdUserConvertation(notificationUser.getConvertationId());
@@ -195,82 +198,144 @@ public class ChatService {
         userMessage.setReceiver(notificationUser.getReceiverId());
         userMessage.setMessage(notificationUser.getMessage());
         userMessage.setIsSeen(notificationUser.getIsSeen());
-        userMessage.setIsUnsend(notificationUser.getIsUnsend());
+        userMessage.setIsUnsend(notificationUser.getIsUnsend());    
+        userMessage.setCreatedBy(notificationUser.getSenderId());
+        userMessage.setCreatedOn(new Date());
+        userMessage.setIsDelete(false);
 
-        userMessageRepository.save(userMessage);
-        notificationService.sendNotification(String.valueOf(notificationUser.getReceiverId()), notificationUser);
+        UserMessage savedUserMessage = userMessageRepository.save(userMessage);
+
+        Object response = getMessage(savedUserMessage, MessageTYPE.TEXT);
+
+        return response;
     }
 
-    public void saveMessageGroup(NotificationUser notificationUser){
+    public Object saveMessageGroup(NotificationUser notificationUser){
         GroupMessage groupMessage = new GroupMessage();
         
         groupMessage.setGroupId(notificationUser.getConvertationId());
         groupMessage.setSenderMessage(notificationUser.getSenderId());
         groupMessage.setMessage(notificationUser.getMessage());
         groupMessage.setIsUnsend(notificationUser.getIsUnsend());
+        groupMessage.setCreatedOn(new Date());
+        groupMessage.setCreatedBy(notificationUser.getSenderId());
 
-        groupMessageRepository.save(groupMessage);
+        User user = userRepository.findById(groupMessage.getSenderMessage()).orElse(null);
 
-        List<UserGroups> userGroups = userGroupsRepository.listGroupsByGroupId(notificationUser.getConvertationId());
-        
-        for (UserGroups userGroup : userGroups) {
-            notificationService.sendNotification(String.valueOf(userGroup.getUserId()), notificationUser);
+        if (user == null) {
+            return "Failed";
         }
+
+        GroupMessage savedGroupMessage = groupMessageRepository.save(groupMessage);
+        Object response = getMessage(savedGroupMessage, user, MessageTYPE.GROUP);
+
+        return response;
     }
 
     public ArrayList<Object> getTXTMessages(Long convertationId ){
         List<UserMessage> listUserMessages = userMessageRepository.listMessages(convertationId);
-
         ArrayList<Object> arrayResponse = new ArrayList<>();
+
         for (UserMessage userMessage : listUserMessages) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", userMessage.getId());
-            response.put("senderId", userMessage.getSender());
-            response.put("receiverId", userMessage.getReceiver());
-            response.put("message", userMessage.getMessage());
-            response.put("createdOn", userMessage.getCreatedOn());
-            response.put("isSeen", userMessage.getIsSeen());
-            response.put("isUnsent", userMessage.getIsUnsend());
-            response.put("isDelete", userMessage.getIsDelete());
-            response.put("isGroup", false);
+            Object response = getMessage(userMessage, MessageTYPE.TEXT);
             arrayResponse.add(response);
         }
+
         return arrayResponse;
     }
 
     public ArrayList<Object> getGRPMessages(Long convertationId ){
         ArrayList<Object> response = new ArrayList<>();
-
         List<GroupMessage> listGroupMessages = groupMessageRepository.listGroupMessages(convertationId);
 
         for (GroupMessage groupMessage : listGroupMessages) {
-            Map<String, Object> message = new HashMap<>();
-
             User user = userRepository.findById(groupMessage.getSenderMessage()).orElse(null);
-
             if (user == null) {
                 continue;
             }
 
-            message.put("id", groupMessage.getId());
-            message.put("senderId", groupMessage.getSenderMessage());
-            message.put("message", groupMessage.getMessage());
-            message.put("isUnsent", groupMessage.getIsUnsend());
-            message.put("createdOn", groupMessage.getCreatedOn());
-            message.put("name", user.getName());
-            message.put("handphone", user.getHandphoneNumber());
+            // message.put("id", groupMessage.getId());
+            // message.put("senderId", groupMessage.getSenderMessage());
+            // message.put("message", groupMessage.getMessage());
+            // message.put("isUnsent", groupMessage.getIsUnsend());
+            // message.put("createdOn", groupMessage.getCreatedOn());
+            // message.put("name", user.getName());
+            // message.put("handphone", user.getHandphoneNumber());
             
-            if (user.getIdProfileImage() != null) {
-                message.put("profileImage", user.getProfileImage());
-            } 
+            // if (user.getIdProfileImage() != null) {
+            //     message.put("profileImage", user.getProfileImage());
+            // } 
 
-            if (user.getIdProfileImage() == null) {
-                message.put("profleImage", user.getIdProfileImage());
-            }
-            message.put("isGroup", true);
-            response.add(message);
+            // if (user.getIdProfileImage() == null) {
+            //     message.put("profleImage", user.getIdProfileImage());
+            // }
+            // message.put("isGroup", true);
+            response.add(getMessage(groupMessage, user, MessageTYPE.GROUP));
         }
 
+        return response;
+    }
+
+    public Object getMessage(UserMessage userMessage, MessageTYPE messageTYPE){
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("id", userMessage.getId());
+        response.put("senderId", userMessage.getSender());
+        response.put("receiverId", userMessage.getReceiver());
+        response.put("message", userMessage.getMessage());
+        response.put("createdOn", userMessage.getCreatedOn());
+        response.put("isSeen", userMessage.getIsSeen());
+        response.put("isUnsent", userMessage.getIsUnsend());
+        response.put("isDelete", userMessage.getIsDelete());
+        response.put("isGroup", false);
+
+        return response;
+    }
+
+    public Object getMessage(GroupMessage groupMessage, User user, MessageTYPE messageTYPE){
+        Map<String, Object> message = new HashMap<>();
+
+        message.put("id", groupMessage.getId());
+        message.put("senderId", groupMessage.getSenderMessage());
+        message.put("message", groupMessage.getMessage());
+        message.put("isUnsent", groupMessage.getIsUnsend());
+        message.put("createdOn", groupMessage.getCreatedOn());
+        message.put("name", user.getName());
+        message.put("receiverId", groupMessage.getGroupId());
+        message.put("isDelete", deleteMessage(groupMessage.getGroupId(), groupMessage.getSenderMessage(), groupMessage.getId()));
+        message.put("seen", isSeenMessageGroup(groupMessage.getGroupId(), groupMessage.getCreatedOn()));
+         
+        if (user.getIdProfileImage() != null) {
+            message.put("profileImage", user.getProfileImage());
+        } 
+
+        if (user.getIdProfileImage() == null) {
+            message.put("profileImage", user.getIdProfileImage());
+        }
+
+        message.put("isGroup", true);
+
+        return message;
+    }
+
+    public Boolean deleteMessage(Long convertationId, Long senderId, Long messageId){
+        DeletedMessage isMessageDeleted = deleteMessageRepository.deletedMsg(convertationId, senderId, messageId);
+        
+        if (isMessageDeleted != null) {
+            return true;
+        }
+        return false;
+    }
+
+    public Object isSeenMessageGroup(Long groupId, Date createOnMsg){
+        Map<String, Object> response = new HashMap<>();
+
+        List<UserGroups> listUser = userGroupsRepository.listUserGroupByIdGroup(groupId);
+        for (UserGroups user : listUser) {
+            if (user.getSeeMessage().after(createOnMsg)) {
+                response.put("name", user.getUser().getName());
+            }
+        }
         return response;
     }
 }

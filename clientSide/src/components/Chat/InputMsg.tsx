@@ -1,8 +1,33 @@
 import { IoIosSend } from "react-icons/io";
 import { Input } from "@/components/ui/input";
 import { Button } from "../ui/button";
+import { useState } from "react";
+import axios from "axios";
 
-const InputMsg = () => {
+// "convertationId": 1,
+// "senderId": 1,
+//     "receiverId": 3,
+//     "message": "tunggu ni api",
+//     "isSeen" : false,
+//     "isUnsend": false
+
+interface InputMsgProps {
+  sendMessage: any;
+}
+
+const InputMsg: React.FC<InputMsgProps> = ({ sendMessage }) => {
+  const [message, setMessage] = useState<string>("");
+
+  const sendMsg = async (
+    isSeen: boolean,
+    isUnsend: boolean,
+    message: string
+  ) => {
+    if (message.trim() === "") return;
+    sendMessage(message, isSeen, isUnsend);
+    setMessage("");
+  };
+
   return (
     <>
       {/* input message */}
@@ -25,8 +50,14 @@ const InputMsg = () => {
             id="input-group-1"
             className="w-full border-transparent focus:outline-none focus:border-transparent focus:ring-0"
             placeholder="Your message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
           />
-          <div>
+          <div
+            onClick={() => {
+              sendMsg(false, false, message);
+            }}
+          >
             <IoIosSend size={18} className="text-gray-500" />
           </div>
         </div>
