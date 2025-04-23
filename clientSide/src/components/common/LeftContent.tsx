@@ -14,6 +14,7 @@ interface LeftContentProps {
   onChangeConvertation: any;
   pinnedMessage?: UserChat[];
   unPinnedMessage?: UserChat[];
+  onSeenMessage: any;
 }
 
 interface sendUser {
@@ -42,6 +43,7 @@ const LeftContent: React.FC<LeftContentProps> = ({
   pinnedMessage,
   userId,
   onChangeConvertation,
+  onSeenMessage,
 }) => {
   const [selected, setSelected] = useState<string>("");
   const now = new Date();

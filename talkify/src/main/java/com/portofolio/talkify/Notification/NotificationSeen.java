@@ -11,13 +11,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class NotificationUser {
-    private Long id;
-    private Long convertationId;
-    private Long senderId;
-    private Long receiverId;
-    private String message;
-    private Boolean isSeen;
-    private Boolean isUnsend;
+public class NotificationSeen {
+    private Long messageId;
+    private Long conversationId;
+    private Long userId;
     private MessageTYPE messageTYPE;
 }

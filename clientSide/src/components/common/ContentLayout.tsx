@@ -10,6 +10,13 @@ interface ProfileImage {
   userId: number;
 }
 
+enum NotificationTYPE {
+  FAILED,
+  MESSAGE,
+  SEENMESSAGE,
+  UPDATEDPROFILE,
+}
+
 interface sendUser {
   convertationId: number;
   receiverId: number;
@@ -139,6 +146,8 @@ const ContentLayout = () => {
         console.log("Connected!");
         client.subscribe(`/topic/${value}`, (response: any) => {
           const parsedResponse: any = JSON.parse(response.body);
+
+          // get or send message
           if (parsedResponse.type === "MESSAGE") {
             const messageResponse: userMessage = parsedResponse.message;
             console.log("Received : ", messageResponse);
@@ -148,6 +157,11 @@ const ContentLayout = () => {
             ]);
 
             sortingMessage(messageResponse);
+          }
+
+          // seen message
+          if (parsedResponse.type === "SEENMESSAGE") {
+            console.log("step 1 ok");
           }
         });
 
@@ -265,6 +279,28 @@ const ContentLayout = () => {
     }
   };
 
+  const handleSeenMessage = (messageId: number[]) => {
+    const client = clientRef.current;
+    if (!client) {
+      console.log("Client is not yet active");
+      return;
+    }
+
+    console.log(messageId);
+
+    const payload = {
+      convertationId: convertationId,
+      messageId: messageId,
+      userId: value,
+      messageTYPE: typeConvertation,
+    };
+
+    client.publish({
+      destination: "/app/enterMessage",
+      body: JSON.stringify(payload),
+    });
+  };
+
   const handleSendMessage = (
     message: string,
     isSeen: boolean,
@@ -300,6 +336,7 @@ const ContentLayout = () => {
           unPinnedMessage={unPinnedMessage}
           userId={value}
           onChangeConvertation={changeConvertation}
+          onSeenMessage={handleSeenMessage}
         />
       </div>
       {/* Isi chat friend or group */}
