@@ -26,7 +26,7 @@ interface userMessage {
   message: string;
   name?: string;
   isGroup: boolean;
-  createOn: string;
+  createdOn: string;
   image?: any;
 }
 
@@ -44,30 +44,31 @@ interface userChat {
   handphoneNumber: number;
   name: string;
   email: string;
-  lastMessage: LastMessage | null;
+  lastMessage: LastMessage;
   userFriends: boolean;
   profileImage: ProfileImage | null;
   pinned: boolean;
   isGroup: boolean;
   createdOn: string;
-  userConvertationId: number;
+  conversationId: number;
   userGroup: number;
   memberGroup: number;
 }
 
 const ContentLayout = () => {
-  const [chat, setChat] = useState<userChat[] | null>(null);
   const [convertationId, setConvertationId] = useState<number | null>(null);
+  const [pinnedMessage, setPinnedMessage] = useState<userChat[]>();
+  const [unPinnedMessage, setUnPinnedMessage] = useState<userChat[]>();
   const [sendUser, setSendUser] = useState<sendUser | null>(null);
   const [messages, setMessages] = useState<userMessage[]>([]);
   const [typeConvertation, setTypeConvertation] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [member, setMember] = useState<number | null>(null);
   let value: number = 1;
-  // sementara userId menggunakan value
 
   const hasConnected = useRef(false);
   const clientRef = useRef<Client | null>(null);
+  const unPinnedMessageRef = useRef<userChat[]>();
 
   const changeConvertation = (
     convertation: number,
@@ -76,12 +77,15 @@ const ContentLayout = () => {
     member: number,
     sendUser: sendUser
   ) => {
+    if (convertation == convertationId && typeConvertation == type) {
+      return;
+    }
     setConvertationId(convertation);
     setTypeConvertation(type);
     setName(name);
     setMember(member);
-    setSendUser(sendUser);
     setMessages([]);
+    setSendUser(sendUser);
   };
   useEffect(() => {
     console.log(sendUser);
@@ -91,18 +95,60 @@ const ContentLayout = () => {
     console.log(typeConvertation);
   }, [typeConvertation]);
 
+  const sortingMessage = (incomingMessage: userMessage) => {
+    const currentUnPinned = unPinnedMessageRef.current;
+
+    if (!currentUnPinned) return;
+
+    console.log("masuk ngga");
+
+    const upadateMessage = currentUnPinned.map((chat) => {
+      if (
+        chat.id === incomingMessage.receiverId &&
+        chat.isGroup === incomingMessage.isGroup
+      ) {
+        return {
+          ...chat,
+          createdOn: incomingMessage.createdOn,
+          lastMessage: {
+            ...chat.lastMessage,
+            message: incomingMessage.message,
+          },
+        };
+      }
+      return chat;
+    });
+
+    const sorted = [...upadateMessage].sort((a, b) => {
+      return new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime();
+    });
+
+    setUnPinnedMessage(sorted);
+  };
+
+  useEffect(() => {
+    if (unPinnedMessage) {
+      unPinnedMessageRef.current = unPinnedMessage;
+    }
+  }, [unPinnedMessage]);
+
   const initialiseConnections = () => {
     const client = new Client({
       brokerURL: "ws://localhost:8080/ws",
       onConnect: () => {
         console.log("Connected!");
-        client.subscribe(`/topic/${3}`, (response: any) => {
-          const parsedResponse: userMessage = JSON.parse(response.body);
-          console.log("Received : ", parsedResponse);
-          setMessages((preventMessages) => [
-            ...preventMessages,
-            parsedResponse,
-          ]);
+        client.subscribe(`/topic/${value}`, (response: any) => {
+          const parsedResponse: any = JSON.parse(response.body);
+          if (parsedResponse.type === "MESSAGE") {
+            const messageResponse: userMessage = parsedResponse.message;
+            console.log("Received : ", messageResponse);
+            setMessages((preventMessages) => [
+              ...preventMessages,
+              messageResponse,
+            ]);
+
+            sortingMessage(messageResponse);
+          }
         });
 
         client.subscribe(`/topic/common`, (response: any) => {
@@ -140,7 +186,7 @@ const ContentLayout = () => {
       );
       const data = response.data.data;
 
-      const mappedData: userChat[] = data.map((item: any) => ({
+      const unPinned: userChat[] = data.unPinned.map((item: any) => ({
         id: item.id,
         name: item.name,
         email: item.email,
@@ -151,12 +197,28 @@ const ContentLayout = () => {
         pinned: item.pinned,
         isGroup: item.isGroup,
         createdOn: item.createdTime,
-        userConvertationId: item.userConvertationId,
+        conversationId: item.convertationId,
         userGroup: item.userGroupId,
         memberGroup: item.memberGroup,
       }));
+      setUnPinnedMessage(unPinned);
 
-      setChat(mappedData);
+      const pinned: userChat[] = data.pinned.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        email: item.email,
+        handphoneNumber: item.handphoneNumber,
+        profileImage: item.profileImage,
+        lastMessage: item.lastMessage,
+        userFriends: item.userFriends,
+        pinned: item.pinned,
+        isGroup: item.isGroup,
+        createdOn: item.createdTime,
+        conversationId: item.userConvertationId,
+        userGroup: item.userGroupId,
+        memberGroup: item.memberGroup,
+      }));
+      setPinnedMessage(pinned);
     } catch (error) {
       console.log(error);
     }
@@ -183,7 +245,7 @@ const ContentLayout = () => {
       const data = response.data.data;
       console.log(data);
       const message: userMessage[] = data.map((value: any) => ({
-        createOn: value.createdOn,
+        createdOn: value.createdOn,
         senderId: value.senderId,
         receiverId: value.receiverId,
         id: value.id,
@@ -229,11 +291,13 @@ const ContentLayout = () => {
       body: JSON.stringify(payload),
     });
   };
+
   return (
     <div className="flex flex-row h-full gap-4 rounded-3xl">
       <div className="w-[30%] pl-5 pt-5 h-full">
         <LeftContent
-          userChat={chat}
+          pinnedMessage={pinnedMessage}
+          unPinnedMessage={unPinnedMessage}
           userId={value}
           onChangeConvertation={changeConvertation}
         />

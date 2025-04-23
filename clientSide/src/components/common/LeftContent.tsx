@@ -10,9 +10,10 @@ interface ProfileImage {
 }
 
 interface LeftContentProps {
-  userChat: UserChat[] | null;
   userId: number;
   onChangeConvertation: any;
+  pinnedMessage?: UserChat[];
+  unPinnedMessage?: UserChat[];
 }
 
 interface sendUser {
@@ -25,19 +26,20 @@ interface UserChat {
   handphoneNumber: number;
   name: string;
   email: string;
-  lastMessage: LastMessage | null;
+  lastMessage: LastMessage;
   userFriends: boolean;
   profileImage: ProfileImage | null;
   pinned: boolean;
   isGroup: boolean;
   createdOn: string;
-  userConvertationId: number;
+  conversationId: number;
   userGroup: number;
   memberGroup: number;
 }
 
 const LeftContent: React.FC<LeftContentProps> = ({
-  userChat,
+  unPinnedMessage,
+  pinnedMessage,
   userId,
   onChangeConvertation,
 }) => {
@@ -95,6 +97,11 @@ const LeftContent: React.FC<LeftContentProps> = ({
     onChangeConvertation(id, type, name, member, sendUser);
   };
 
+  const chatMessage: UserChat[] = [
+    ...(pinnedMessage || []),
+    ...(unPinnedMessage || []),
+  ];
+
   return (
     // List All chat
     <div className="flex flex-col h-full">
@@ -133,14 +140,12 @@ const LeftContent: React.FC<LeftContentProps> = ({
 
       <ScrollArea className="pr-2">
         <div className="flex flex-col gap-2">
-          {userChat != null ? (
-            userChat?.map((item) => {
+          {chatMessage != null ? (
+            chatMessage?.map((item) => {
               const userProfile = item.profileImage?.image
                 ? `data:image/jpg;base64,${item.profileImage.image}`
                 : profile;
               let isGroup: string = "GROUP";
-              let convertation: number =
-                item.isGroup == true ? item.id : item.userConvertationId;
 
               const date = new Date(item.createdOn);
 
@@ -169,7 +174,7 @@ const LeftContent: React.FC<LeftContentProps> = ({
               let key = item.isGroup ? item.id + isGroup + "" : item.id + "";
 
               let sendUser: sendUser = {
-                convertationId: convertation,
+                convertationId: item.conversationId,
                 receiverId: item.id,
               };
 
@@ -178,7 +183,7 @@ const LeftContent: React.FC<LeftContentProps> = ({
                   key={item.isGroup ? item.id + isGroup : item.id}
                   onClick={() => {
                     changeConvertation(
-                      convertation,
+                      item.conversationId,
                       isGroup,
                       item.name,
                       item.memberGroup,

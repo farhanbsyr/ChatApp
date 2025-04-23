@@ -22,7 +22,7 @@ interface userMessage {
   message: string;
   name?: string;
   isGroup: boolean;
-  createOn: string;
+  createdOn: string;
   image?: any;
 }
 
@@ -43,7 +43,7 @@ const RightContent: React.FC<RightContentProps> = ({
           let positionMsg = "justify-start";
           let showedGrup: boolean = false;
 
-          const date = new Date(value.createOn);
+          const date = new Date(value.createdOn);
 
           const localTime = date.toLocaleString("en-GB", {
             timeZone: "Asia/Jakarta",

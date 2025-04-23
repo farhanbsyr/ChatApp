@@ -102,7 +102,7 @@ public class ChatService {
 
         // Mengatur informasi lainnya
         userChatProfile.put("id", profileUser.getId());
-        userChatProfile.put("userConvertationId", userConvertation.getId());
+        userChatProfile.put("convertationId", userConvertation.getId());
         userChatProfile.put("name", profileUser.getName());
         userChatProfile.put("email", profileUser.getEmail());
         userChatProfile.put("handphoneNumber", profileUser.getHandphoneNumber());
@@ -164,6 +164,7 @@ public class ChatService {
         detailGroupUser.put("userGroupId", userGroup.getId());
         detailGroupUser.put("id", group.getId());
         detailGroupUser.put("memberGroup", memberGroup);
+        detailGroupUser.put("convertationId", group.getId());
         if (group.getProfileImage() != null && group != null) {
             profileImageResponse.put("image", group.getProfileImage().getImage());
             profileImageResponse.put("idImage", group.getProfileImage().getId());
@@ -254,22 +255,6 @@ public class ChatService {
                 continue;
             }
 
-            // message.put("id", groupMessage.getId());
-            // message.put("senderId", groupMessage.getSenderMessage());
-            // message.put("message", groupMessage.getMessage());
-            // message.put("isUnsent", groupMessage.getIsUnsend());
-            // message.put("createdOn", groupMessage.getCreatedOn());
-            // message.put("name", user.getName());
-            // message.put("handphone", user.getHandphoneNumber());
-            
-            // if (user.getIdProfileImage() != null) {
-            //     message.put("profileImage", user.getProfileImage());
-            // } 
-
-            // if (user.getIdProfileImage() == null) {
-            //     message.put("profleImage", user.getIdProfileImage());
-            // }
-            // message.put("isGroup", true);
             response.add(getMessage(groupMessage, user, MessageTYPE.GROUP));
         }
 
@@ -286,7 +271,7 @@ public class ChatService {
         response.put("createdOn", userMessage.getCreatedOn());
         response.put("isSeen", userMessage.getIsSeen());
         response.put("isUnsent", userMessage.getIsUnsend());
-        response.put("isDelete", userMessage.getIsDelete());
+        response.put("isDelete", deleteMessage(userMessage.getIdUserConvertation(), userMessage.getSender(), userMessage.getId()));
         response.put("isGroup", false);
 
         return response;

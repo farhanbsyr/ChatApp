@@ -1,6 +1,7 @@
 package com.portofolio.talkify.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +63,8 @@ public class ApiChatController {
             }
 
             List<UserConvertation> userConvertations = this.userConvertaionRepository.listConvertations(userId);
-            ArrayList<Object> response =  new ArrayList<>();
+            Map<String, Object> response =  new HashMap<>();
+
             ArrayList<Object> pinnedResponse = new ArrayList<>();
             ArrayList<Object> unPinnedResponse = new ArrayList<>();
             List<UserGroups> userGroups = this.userGroupsRepository.listUserGroups(userId);
@@ -91,8 +93,8 @@ public class ApiChatController {
             chatService.sortingUserChat(pinnedResponse);
             chatService.sortingUserChat(unPinnedResponse);
 
-            response.addAll(pinnedResponse); 
-            response.addAll(unPinnedResponse);
+            response.put("pinned", pinnedResponse);
+            response.put("unPinned", unPinnedResponse);
             
             return ResponseUtil.generateSuccessResponse("Success to get friends data", response);
         } catch (Exception e) {

@@ -33,14 +33,6 @@ public class UserMessage extends BaseProperties {
     @JoinColumn(name = "idUserConvertation", insertable = false, updatable = false)
     private UserConvertation userConvertation;
 
-    // @ManyToOne
-    // @JoinColumn(name = "sender", insertable = false, updatable = false)
-    // private User senderMessage;
-
-    // @ManyToOne
-    // @JoinColumn(name = "receiver", insertable = false, updatable = false)
-    // private User receiveMessage;
-
     public Long getIdUserConvertation() {
         return idUserConvertation;
     }
