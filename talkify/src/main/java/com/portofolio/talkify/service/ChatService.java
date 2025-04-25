@@ -53,6 +53,7 @@ public class ChatService {
     @Autowired
     private UserGroupsRepository userGroupsRepository;
    
+    
     public Map<String, Object> getUserChat (Long userId, UserConvertation userConvertation){
         Map<String, Object> userChatProfile = new HashMap<>();
         Map<String, Object> profileImageResponse = new HashMap<>();
@@ -87,10 +88,10 @@ public class ChatService {
             lastMessageResponse.put("createdAt", lastMessage.getCreatedOn());
             lastMessageResponse.put("createBy", lastMessage.getCreatedBy());
             userChatProfile.put("lastMessage", lastMessageResponse);
-            userChatProfile.put("createdTime", lastMessage.getCreatedOn());
+            userChatProfile.put("createdOn", lastMessage.getCreatedOn());
         } else if (userConvertation.getIsDelete() != true && lastMessage == null) {
             userChatProfile.put("lastMessage", lastMessage);
-            userChatProfile.put("createdTime", userConvertation.getCreatedOn());
+            userChatProfile.put("createdOn", userConvertation.getCreatedOn());
         }
 
         // Menentukan apakah pengguna adalah teman
@@ -101,8 +102,11 @@ public class ChatService {
         }
 
         // Mengatur informasi lainnya
+        Long unSeenMessage = userMessageRepository.countFalseMessage(userConvertation.getId(), userId);
+
+        userChatProfile.put("unSeenMessage", unSeenMessage);
         userChatProfile.put("id", profileUser.getId());
-        userChatProfile.put("convertationId", userConvertation.getId());
+        userChatProfile.put("conversationId", userConvertation.getId());
         userChatProfile.put("name", profileUser.getName());
         userChatProfile.put("email", profileUser.getEmail());
         userChatProfile.put("handphoneNumber", profileUser.getHandphoneNumber());
@@ -128,10 +132,10 @@ public class ChatService {
                 Map<String, Object> map1 = (Map<String, Object>) response.get(j);
                 Map<String, Object> map2 = (Map<String, Object>) response.get(j + 1);
 
-                Date createTime1 = (Date) map1.get("createdTime");
-                Date createTime2 = (Date) map2.get("createdTime");
+                Date createTime1 = (Date) map1.get("createdOn");
+                Date createTime2 = (Date) map2.get("createdOn");
                 
-                if (createTime1 != null && createTime2 != null && createTime1.compareTo(createTime2) < 0) {
+                if (createTime1 != null && createTime2 != null && createTime1.compareTo(createTime2) > 0) {
                    
                     Map<String, Object> temp = map1;
                     response.set(j, map2);
@@ -151,8 +155,6 @@ public class ChatService {
         Map<String, Object> detailGroupUser = new HashMap<>();
         Map<String, Object> profileImageResponse = new HashMap<>();
         Map<String, Object> lastMessageResponse = new HashMap<>();
-        // yang ditambahkan profile dari groupnya
-        // nanti di frontend tinggal buat ? utk 
 
         GroupMessage lastMessage = this.groupMessageRepository.lastGroupMessage(userGroup.getGroupId());
         Group group = this.groupRepository.findById(userGroup.getGroupId()).orElse(null);
@@ -164,7 +166,7 @@ public class ChatService {
         detailGroupUser.put("userGroupId", userGroup.getId());
         detailGroupUser.put("id", group.getId());
         detailGroupUser.put("memberGroup", memberGroup);
-        detailGroupUser.put("convertationId", group.getId());
+        detailGroupUser.put("conversationId", group.getId());
         if (group.getProfileImage() != null && group != null) {
             profileImageResponse.put("image", group.getProfileImage().getImage());
             profileImageResponse.put("idImage", group.getProfileImage().getId());
@@ -180,12 +182,15 @@ public class ChatService {
             lastMessageResponse.put("sender", lastMessage.getSenderMessage());
             lastMessageResponse.put("message", lastMessage.getMessage());
             detailGroupUser.put("lastMessage", lastMessageResponse);
-            detailGroupUser.put("createdTime", lastMessage.getCreatedOn());
+            detailGroupUser.put("createdOn", lastMessage.getCreatedOn());
         } else {
             detailGroupUser.put("lastMessage", lastMessage);
-            detailGroupUser.put("createdTime", userGroup.getCreatedOn());
+            detailGroupUser.put("createdOn", userGroup.getCreatedOn());
         }
 
+        Long countGroupMessage = groupMessageRepository.countFalseGroupMessage(group.getId(), userId, userGroup.getSeeMessage());
+        
+        detailGroupUser.put("unSeenMessage", countGroupMessage);
         detailGroupUser.put("isGroup", true);
 
         return detailGroupUser;

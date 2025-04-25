@@ -10,7 +10,6 @@ interface ProfileImage {
 }
 
 interface LeftContentProps {
-  userId: number;
   onChangeConvertation: any;
   pinnedMessage?: UserChat[];
   unPinnedMessage?: UserChat[];
@@ -34,14 +33,14 @@ interface UserChat {
   isGroup: boolean;
   createdOn: string;
   conversationId: number;
-  userGroup: number;
+  userGroupId: number;
   memberGroup: number;
+  unSeenMessage: number;
 }
 
 const LeftContent: React.FC<LeftContentProps> = ({
   unPinnedMessage,
   pinnedMessage,
-  userId,
   onChangeConvertation,
   onSeenMessage,
 }) => {
@@ -94,9 +93,11 @@ const LeftContent: React.FC<LeftContentProps> = ({
     type: string,
     name: string,
     member: number,
-    sendUser: sendUser
+    sendUser: sendUser,
+    unSeenMessage: number
   ) => {
     onChangeConvertation(id, type, name, member, sendUser);
+    onSeenMessage(unSeenMessage);
   };
 
   const chatMessage: UserChat[] = [
@@ -189,7 +190,8 @@ const LeftContent: React.FC<LeftContentProps> = ({
                       isGroup,
                       item.name,
                       item.memberGroup,
-                      sendUser
+                      sendUser,
+                      item.unSeenMessage
                     );
                     setSelected(
                       item.isGroup ? item.id + isGroup + "" : item.id + ""
@@ -201,7 +203,7 @@ const LeftContent: React.FC<LeftContentProps> = ({
                     name={item.name}
                     profileImage={userProfile}
                     lastMessage={item.lastMessage}
-                    userId={userId}
+                    unSeenMessage={item.unSeenMessage}
                     pinned={item.pinned}
                     time={formattedTime}
                   />

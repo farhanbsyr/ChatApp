@@ -1,5 +1,7 @@
 package com.portofolio.talkify.controller;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +62,7 @@ public class WebSocketController {
     @MessageMapping("/sendMessage")
     public void testSocket(NotificationUser notificationUser){ 
         Map<String, Object> response = new HashMap<>();
+        
         if (notificationUser.getMessageTYPE() == MessageTYPE.TEXT) {
             UserConvertation userConvertation = userConvertaionRepository.findById(notificationUser.getConvertationId()).orElse(null);
 
@@ -92,69 +95,86 @@ public class WebSocketController {
                 }
             } 
         }
-        
      }
 
-     @MessageMapping("/enterMessage")
-     public void enterMessage(List<NotificationSeen> notificationSeens, Long userId){
+    @MessageMapping("/enterMessage")
+    public void enterMessage(NotificationSeen notificationSeen){
         Map<String, Object> response = new HashMap<>();
+        ArrayList<Object> listResponse = new ArrayList<>();
 
-        for (NotificationSeen notificationSeen : notificationSeens) {
-            if (notificationSeen.getMessageTYPE() == MessageTYPE.TEXT) {
-                UserMessage userMessage = userMessageRepository.findById(notificationSeen.getMessageId()).orElse(null);
-                if (userMessage == null) {
-                    response.put("type", NotificationTYPE.FAILED);
-                    response.put("error: ", "Message is not found");
-                    simpMessagingTemplate.convertAndSend("/topic/" + userId , response);
-                    return;
-                }
-        
+        if (notificationSeen.getMessageTYPE() == MessageTYPE.TEXT) {
+            List<UserMessage> listMessageFalse = userMessageRepository.listFalseMessage(notificationSeen.getConversationId(), notificationSeen.getUserId());
+            UserConvertation userConvertation = userConvertaionRepository.findById(notificationSeen.getConversationId()).orElse(null);
+
+            if (userConvertation == null) {
+                response.put("type", NotificationTYPE.FAILED);
+                response.put("error: ", "Message is not found");
+                simpMessagingTemplate.convertAndSend("/topic/" + notificationSeen.getUserId() , response);
+                return;
+            }
+
+            for (UserMessage userMessage : listMessageFalse) {
+                Map<String, Object> responObj = new HashMap<>();
                 userMessage.setIsSeen(true);
                 userMessageRepository.save(userMessage);
-        
-                response.put("messageId", userMessage.getId());
-                response.put("isSeen", userMessage.getIsSeen());
-                response.put("type", NotificationTYPE.SEENMESSAGE);
-                response.put("isGroup", MessageTYPE.TEXT);
-        
-                simpMessagingTemplate.convertAndSend("/topic/" + userMessage.getSender() , response);
-                simpMessagingTemplate.convertAndSend("/topic/" + userMessage.getReceiver() , response);
+
+                responObj.put("messageId", userMessage.getId());
+                responObj.put("isSeen", userMessage.getIsSeen());
+                
+                listResponse.add(responObj);
             }
+
+            response.put("conversationId", userConvertation.getId());
+            response.put("isPinned", userConvertation.getIsPINNED());
+            response.put("seen", listResponse);
+            response.put("type", NotificationTYPE.SEENMESSAGE);
+            response.put("isGroup", MessageTYPE.TEXT);
     
-            if (notificationSeen.getMessageTYPE() == MessageTYPE.GROUP) {
-                GroupMessage groupMessage = groupMessageRepository.findById(notificationSeen.getMessageId()).orElse(null);
-                UserGroups userGroups = userGroupsRepository.findByGroupIdAndUserId(notificationSeen.getConversationId(), userId);
-    
-                List<UserGroups> listUserGroups = userGroupsRepository.listGroupsByGroupId(userGroups.getGroupId());
-                if (groupMessage == null) {
-    
-                    response.put("type", NotificationTYPE.FAILED);
-                    response.put("message", "Message is not found");
-    
-                    simpMessagingTemplate.convertAndSend("/topic/" + userId, response);
-                    return;
-                }
-    
-                if (userGroups.getSeeMessage().after(groupMessage.getCreatedOn())) {
-                    Map<String, Object> seen = new HashMap<>();
-    
-                    seen.put("id", userGroups.getUser().getId());
-                    seen.put("name", userGroups.getUser().getName());
-    
-                    response.put("messageId", notificationSeen.getMessageId());
-                    response.put("type", NotificationTYPE.SEENMESSAGE);
-                    response.put("seen", seen);
-                    response.put("isGroup", MessageTYPE.GROUP);
-                    
-                    for (UserGroups userGroups2 : listUserGroups) {       
-                        simpMessagingTemplate.convertAndSend("/topic/" + userGroups2.getUserId(), response);
-                    }
-                }
+            simpMessagingTemplate.convertAndSend("/topic/" + userConvertation.getUserSatuId() , response);
+            simpMessagingTemplate.convertAndSend("/topic/" + userConvertation.getUserDuaId() , response);
+            return;
+        }
+
+        if (notificationSeen.getMessageTYPE() == MessageTYPE.GROUP) {
+            UserGroups userGroups = userGroupsRepository.findByGroupIdAndUserId(notificationSeen.getConversationId(), notificationSeen.getUserId());
+            List<GroupMessage> listGroupMessages = groupMessageRepository.listFalseGroupMessages(notificationSeen.getConversationId(), notificationSeen.getUserId(), userGroups.getSeeMessage());
             
+            List<UserGroups> listUserGroups = userGroupsRepository.listGroupsByGroupId(userGroups.getGroupId());
+            
+            Group group = groupRepository.findById(notificationSeen.getConversationId()).orElse(null);
+
+            if (group == null) {
+                response.put("type", NotificationTYPE.FAILED);
+                response.put("error", "Group is not found");
+
+                simpMessagingTemplate.convertAndSend("/topic/" + notificationSeen.getUserId(), response);
+                return;
             }
-    
+
+            Map<String,Object> seenBy = new HashMap<>();
+            seenBy.put("userId", userGroups.getUser().getId());
+            seenBy.put("name", userGroups.getUser().getName());
+
+            for (GroupMessage groupMessage : listGroupMessages) {
+                listResponse.add(groupMessage.getId());
+            }
+
+            userGroups.setSeeMessage(new Date());
+            userGroupsRepository.save(userGroups);
+
+            response.put("isPinned", userGroups.getIsPINNED());
+            response.put("seenBy", seenBy);
+            response.put("seen", listResponse);
+            response.put("type", NotificationTYPE.SEENMESSAGE);
+            response.put("isGroup", MessageTYPE.GROUP);
+           
+            for (UserGroups userGroup : listUserGroups) { 
+                System.out.println(userGroup.getUserId());      
+                simpMessagingTemplate.convertAndSend("/topic/" + userGroup.getUserId(), response);
+            }
         }
     }
 }
-// buat test enterMessage di front end dengan cara masukkan handleSeenMessage di left content lalu ketika di klik akan me trigger handleSeenMessage dan mengirim semua message isSeen False jika TEXT yang ada dalam conversationChat
-// dan jika group akan mengirim message2 yang pada seen tidak ada id user tersebut
+
+// seen pada userMessage adalah object yang berisikan messageId dan true/false isSeen
+// kalo seen pada group adalah berisika list Id dari groupMessage

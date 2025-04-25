@@ -10,13 +10,6 @@ interface ProfileImage {
   userId: number;
 }
 
-enum NotificationTYPE {
-  FAILED,
-  MESSAGE,
-  SEENMESSAGE,
-  UPDATEDPROFILE,
-}
-
 interface sendUser {
   convertationId: number;
   receiverId: number;
@@ -58,8 +51,9 @@ interface userChat {
   isGroup: boolean;
   createdOn: string;
   conversationId: number;
-  userGroup: number;
+  userGroupId: number;
   memberGroup: number;
+  unSeenMessage: number;
 }
 
 const ContentLayout = () => {
@@ -76,6 +70,8 @@ const ContentLayout = () => {
   const hasConnected = useRef(false);
   const clientRef = useRef<Client | null>(null);
   const unPinnedMessageRef = useRef<userChat[]>();
+  const pinnedMessageRef = useRef<userChat[]>();
+  const messagesRef = useRef<userMessage[]>();
 
   const changeConvertation = (
     convertation: number,
@@ -94,20 +90,11 @@ const ContentLayout = () => {
     setMessages([]);
     setSendUser(sendUser);
   };
-  useEffect(() => {
-    console.log(sendUser);
-  }, [sendUser]);
-
-  useEffect(() => {
-    console.log(typeConvertation);
-  }, [typeConvertation]);
 
   const sortingMessage = (incomingMessage: userMessage) => {
     const currentUnPinned = unPinnedMessageRef.current;
 
     if (!currentUnPinned) return;
-
-    console.log("masuk ngga");
 
     const upadateMessage = currentUnPinned.map((chat) => {
       if (
@@ -133,11 +120,80 @@ const ContentLayout = () => {
     setUnPinnedMessage(sorted);
   };
 
+  const seenMessageText = (conversationIdSocket: number, isPinned: boolean) => {
+    if (!isPinned) {
+      const currentUnPinned = unPinnedMessageRef.current;
+      if (!currentUnPinned) return;
+
+      const newUnPinnedMessage = currentUnPinned?.map((message) => {
+        if (message.conversationId === conversationIdSocket) {
+          console.log("convertationId" + "" + message.conversationId);
+
+          return {
+            ...message,
+            unSeenMessage: 0,
+          };
+        }
+        return message;
+      });
+      console.log(newUnPinnedMessage);
+
+      setUnPinnedMessage(newUnPinnedMessage);
+    }
+
+    if (isPinned) {
+      const currentPinned = pinnedMessageRef.current;
+      if (!currentPinned) return;
+
+      const newPinnedMessage = currentPinned.map((message) => {
+        if (message.conversationId === conversationIdSocket) {
+          return {
+            ...message,
+            unSeenMessage: 0,
+          };
+        }
+        return message;
+      });
+      setPinnedMessage(newPinnedMessage);
+    }
+
+    const currentMessages = messagesRef.current;
+    if (!currentMessages) return;
+
+    const newMessages = currentMessages.map((message) => {
+      if (!message.isSeen) {
+        return {
+          ...message,
+          isSeen: true,
+        };
+      }
+      return message;
+    });
+
+    setMessages(newMessages);
+  };
+
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
+
   useEffect(() => {
     if (unPinnedMessage) {
       unPinnedMessageRef.current = unPinnedMessage;
     }
   }, [unPinnedMessage]);
+
+  useEffect(() => {
+    if (pinnedMessage) {
+      pinnedMessageRef.current = pinnedMessage;
+    }
+  }, [pinnedMessage]);
+
+  useEffect(() => {
+    if (messages) {
+      messagesRef.current = messages;
+    }
+  }, [messages]);
 
   const initialiseConnections = () => {
     const client = new Client({
@@ -146,6 +202,7 @@ const ContentLayout = () => {
         console.log("Connected!");
         client.subscribe(`/topic/${value}`, (response: any) => {
           const parsedResponse: any = JSON.parse(response.body);
+          console.log(JSON.parse(response.body));
 
           // get or send message
           if (parsedResponse.type === "MESSAGE") {
@@ -162,6 +219,13 @@ const ContentLayout = () => {
           // seen message
           if (parsedResponse.type === "SEENMESSAGE") {
             console.log("step 1 ok");
+            if (parsedResponse.isGroup === "TEXT") {
+              seenMessageText(
+                parsedResponse.conversationId,
+                parsedResponse.isPinned
+              );
+            }
+            console.log(parsedResponse);
           }
         });
 
@@ -200,7 +264,9 @@ const ContentLayout = () => {
       );
       const data = response.data.data;
 
-      const unPinned: userChat[] = data.unPinned.map((item: any) => ({
+      console.log(data);
+
+      const unPinned: userChat[] = data.unPinned.map((item: userChat) => ({
         id: item.id,
         name: item.name,
         email: item.email,
@@ -210,14 +276,15 @@ const ContentLayout = () => {
         userFriends: item.userFriends,
         pinned: item.pinned,
         isGroup: item.isGroup,
-        createdOn: item.createdTime,
-        conversationId: item.convertationId,
+        createdOn: item.createdOn,
+        conversationId: item.conversationId,
         userGroup: item.userGroupId,
         memberGroup: item.memberGroup,
+        unSeenMessage: item.unSeenMessage,
       }));
       setUnPinnedMessage(unPinned);
 
-      const pinned: userChat[] = data.pinned.map((item: any) => ({
+      const pinned: userChat[] = data.pinned.map((item: userChat) => ({
         id: item.id,
         name: item.name,
         email: item.email,
@@ -227,10 +294,11 @@ const ContentLayout = () => {
         userFriends: item.userFriends,
         pinned: item.pinned,
         isGroup: item.isGroup,
-        createdOn: item.createdTime,
-        conversationId: item.userConvertationId,
+        createdOn: item.createdOn,
+        conversationId: item.conversationId,
         userGroup: item.userGroupId,
         memberGroup: item.memberGroup,
+        unSeenMessage: item.unSeenMessage,
       }));
       setPinnedMessage(pinned);
     } catch (error) {
@@ -257,7 +325,6 @@ const ContentLayout = () => {
       );
 
       const data = response.data.data;
-      console.log(data);
       const message: userMessage[] = data.map((value: any) => ({
         createdOn: value.createdOn,
         senderId: value.senderId,
@@ -279,18 +346,19 @@ const ContentLayout = () => {
     }
   };
 
-  const handleSeenMessage = (messageId: number[]) => {
+  const handleSeenMessage = (unSeenMessage: number) => {
     const client = clientRef.current;
     if (!client) {
       console.log("Client is not yet active");
       return;
     }
 
-    console.log(messageId);
+    if (unSeenMessage == 0) {
+      return;
+    }
 
     const payload = {
-      convertationId: convertationId,
-      messageId: messageId,
+      conversationId: convertationId,
       userId: value,
       messageTYPE: typeConvertation,
     };
@@ -334,7 +402,6 @@ const ContentLayout = () => {
         <LeftContent
           pinnedMessage={pinnedMessage}
           unPinnedMessage={unPinnedMessage}
-          userId={value}
           onChangeConvertation={changeConvertation}
           onSeenMessage={handleSeenMessage}
         />

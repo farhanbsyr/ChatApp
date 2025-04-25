@@ -24,4 +24,15 @@ public interface UserMessageRepository extends JpaRepository<UserMessage, Long> 
             order by created_on asc;
             """, nativeQuery = true)
     List<UserMessage> listMessages(Long convertationId);
+
+    @Query(value = """
+             select * from user_message um where is_seen = false and id_user_convertation = ?1 and sender != ?2 ;
+            """, nativeQuery = true)
+    List<UserMessage> listFalseMessage(Long conversationId, Long userId);
+
+    @Query(value = """
+        select count(*) from user_message um where is_seen = false and id_user_convertation = ?1 and sender != ?2 ;
+       """, nativeQuery = true)
+        Long countFalseMessage(Long conversationId, Long userId);
+
 }

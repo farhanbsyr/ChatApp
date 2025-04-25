@@ -12,7 +12,6 @@ import lombok.Setter;
 @Setter
 @Builder
 public class NotificationSeen {
-    private Long messageId;
     private Long conversationId;
     private Long userId;
     private MessageTYPE messageTYPE;

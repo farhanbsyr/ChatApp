@@ -24,11 +24,6 @@ public class GroupMessage extends BaseProperties {
     @JoinColumn(name = "groupId", insertable = false, updatable = false)
     private Group group;
 
-    // permasalahan di sini 
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "senderMessage", insertable = false, updatable = false)
-    // private User sender;
-
     public Long getId() {
         return id;
     }

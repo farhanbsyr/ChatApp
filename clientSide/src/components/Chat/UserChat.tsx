@@ -6,9 +6,8 @@ interface UserChatProps {
   name: string;
   profileImage: string;
   lastMessage?: LastMessage | null;
-  userId: number;
   pinned: boolean;
-  // selected: boolean;
+  unSeenMessage: number;
   time: string;
 }
 
@@ -16,9 +15,8 @@ const UserChat: React.FC<UserChatProps> = ({
   name,
   profileImage,
   lastMessage,
-  userId,
   pinned,
-  // selected,
+  unSeenMessage,
   time,
 }) => {
   return (
@@ -40,7 +38,7 @@ const UserChat: React.FC<UserChatProps> = ({
           {/* name */}
           <div className="mb-1 text-base font-semibold">{name}</div>
 
-          {/* text timbuk */}
+          {/* text timbul */}
           <div className="text-sm text-gray-400">
             {lastMessage != null ? lastMessage.message : ""}
           </div>
@@ -51,20 +49,16 @@ const UserChat: React.FC<UserChatProps> = ({
       <div className="text-right ">
         {/* upper notif */}
         <div className="mb-1 text-[10px] leading-5 text-gray-400 ">{time}</div>
-
         {/* bottom notif */}
         <div className="flex flex-row gap-1">
           {/* notif belum dibaca */}
-          {lastMessage &&
-          !lastMessage.isSeen &&
-          lastMessage.createBy != userId ? (
+          {unSeenMessage > 0 ? (
             <div className="w-5 h-5 text-[12px] bg-red-500 rounded-full flex justify-center items-center font-semibold">
-              1
+              {unSeenMessage}
             </div>
           ) : (
-            <span></span>
+            ""
           )}
-
           <div>{pinned ? <VscPinned size={20} /> : <></>}</div>
         </div>
       </div>
