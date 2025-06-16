@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Chat from "../Chat/Chat";
 import InputMsg from "../Chat/InputMsg";
 import ProfileBox from "../Chat/ProfileBox";
@@ -9,6 +10,8 @@ interface RightContentProps {
   name: string | null;
   member: number | null;
   messages: userMessage[];
+  isGroup: boolean;
+  profile: string;
 }
 
 interface userMessage {
@@ -18,7 +21,7 @@ interface userMessage {
   isDelete: boolean;
   isUnsent: boolean;
   isSeen?: boolean;
-  seen?: object;
+  seen?: object[];
   message: string;
   name?: string;
   isGroup: boolean;
@@ -32,16 +35,25 @@ const RightContent: React.FC<RightContentProps> = ({
   name,
   member,
   messages,
+  isGroup,
+  profile,
 }) => {
   userId = 1;
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
 
   return (
     <div className="flex flex-col w-full h-full pr-4">
-      <ProfileBox name={name} member={member} />
+      {isGroup ? (
+        <ProfileBox name={name} member={member} profile={profile} />
+      ) : (
+        <ProfileBox name={name} member={member} />
+      )}
+
       <ScrollArea className="flex flex-col h-full gap-2">
         {messages.map((value) => {
           let positionMsg = "justify-start";
-          let showedGrup: boolean = false;
 
           const date = new Date(value.createdOn);
 
@@ -58,13 +70,8 @@ const RightContent: React.FC<RightContentProps> = ({
 
           const formattedTime = localTime.substring(12, 17);
 
-          // ini masih hardcord, nanti coba test
           if (value.senderId == userId) {
             positionMsg = "justify-end";
-          }
-
-          if (value.isGroup && userId != value.senderId) {
-            showedGrup = true;
           }
 
           return (
@@ -77,8 +84,10 @@ const RightContent: React.FC<RightContentProps> = ({
                 time={formattedTime}
                 message={value.message}
                 isSeen={value.isSeen}
-                showedGrup={showedGrup}
+                showedGrup={value.isGroup}
                 profile={value.image}
+                member={member}
+                seen={value.seen}
               />
             </div>
           );

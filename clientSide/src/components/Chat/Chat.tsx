@@ -8,6 +8,8 @@ interface ChatProps {
   isSeen?: boolean;
   showedGrup: boolean;
   profile: any;
+  member: number | null;
+  seen?: object[];
 }
 
 const Chat: React.FC<ChatProps> = ({
@@ -17,13 +19,28 @@ const Chat: React.FC<ChatProps> = ({
   isSeen,
   showedGrup,
   profile,
+  member,
+  seen,
 }) => {
-  let isE: string = "";
+  let checkedColor: string = "gray";
+  let image: any;
 
-  if (isSeen) {
-    isE = "seen";
-  } else {
-    isE = "not seen";
+  if (!showedGrup && isSeen) {
+    checkedColor = "blue";
+  }
+
+  if (showedGrup) {
+    if (seen?.length === member) {
+      checkedColor = "blue";
+    }
+  }
+
+  if (profile != null) {
+    image = `data:image/jpeg;base64,${profile.image}`;
+  }
+
+  if (profile == null) {
+    image = "https://github.com/shadcn.png";
   }
 
   return (
@@ -31,7 +48,7 @@ const Chat: React.FC<ChatProps> = ({
       <div className="flex flex-row items-start gap-2.5">
         {showedGrup ? (
           <Avatar className="h-7 w-7">
-            <AvatarImage width={28} src="https://github.com/shadcn.png" />
+            <AvatarImage width={28} src={image} />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
         ) : (
@@ -54,7 +71,9 @@ const Chat: React.FC<ChatProps> = ({
             </p>
             <div className="flex items-center gap-1">
               <span className="text-sm font-normal text-gray-500">{time}</span>
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+              <span
+                className={`text-sm font-normal text-${checkedColor}-500 dark:text-${checkedColor}-400`}
+              >
                 <TbChecks />
               </span>
             </div>

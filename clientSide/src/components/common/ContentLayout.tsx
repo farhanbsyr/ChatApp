@@ -22,7 +22,7 @@ interface userMessage {
   isDelete: boolean;
   isUnsent: boolean;
   isSeen?: boolean;
-  seen?: object;
+  seen?: object[];
   message: string;
   name?: string;
   isGroup: boolean;
@@ -56,6 +56,11 @@ interface userChat {
   unSeenMessage: number;
 }
 
+interface profileGroup {
+  image: string;
+  idImage: number;
+}
+
 const ContentLayout = () => {
   const [convertationId, setConvertationId] = useState<number | null>(null);
   const [pinnedMessage, setPinnedMessage] = useState<userChat[]>();
@@ -65,6 +70,8 @@ const ContentLayout = () => {
   const [typeConvertation, setTypeConvertation] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [member, setMember] = useState<number | null>(null);
+  const [isGroup, setIsGroup] = useState<boolean>(false);
+  const [profile, setProfile] = useState<string>("");
   let value: number = 1;
 
   const hasConnected = useRef(false);
@@ -78,7 +85,9 @@ const ContentLayout = () => {
     type: string,
     name: string,
     member: number,
-    sendUser: sendUser
+    sendUser: sendUser,
+    isGroup: boolean,
+    profile: string
   ) => {
     if (convertation == convertationId && typeConvertation == type) {
       return;
@@ -89,6 +98,10 @@ const ContentLayout = () => {
     setMember(member);
     setMessages([]);
     setSendUser(sendUser);
+    setIsGroup(isGroup);
+    if (isGroup) {
+      setProfile(profile);
+    }
   };
 
   const sortingMessage = (incomingMessage: userMessage) => {
@@ -173,6 +186,64 @@ const ContentLayout = () => {
     setMessages(newMessages);
   };
 
+  const seenMessageGroup = (
+    groupId: number,
+    isPinned: boolean,
+    seeMessage: string,
+    seenBy: object
+  ) => {
+    if (!isPinned) {
+      const currentUnPinned = unPinnedMessageRef.current;
+      if (!currentUnPinned) return;
+
+      const newUnPinnedMessage = currentUnPinned.map((message) => {
+        if (message.id === groupId) {
+          return {
+            ...message,
+            unSeenMessage: 0,
+          };
+        }
+        return message;
+      });
+
+      setUnPinnedMessage(newUnPinnedMessage);
+    }
+
+    if (pinnedMessage) {
+      const currentPinned = pinnedMessageRef.current;
+      if (!currentPinned) return;
+
+      const newPinnedMessage = currentPinned.map((message) => {
+        if (message.id === groupId) {
+          return {
+            ...message,
+            unSeenMessage: 0,
+          };
+        }
+        return message;
+      });
+
+      setPinnedMessage(newPinnedMessage);
+    }
+
+    const currentMessages = messagesRef.current;
+    if (!currentMessages) return;
+
+    const newMessages = currentMessages.map((message) => {
+      if (new Date(message.createdOn) >= new Date(seeMessage)) {
+        return {
+          ...message,
+          seen: message.seen ? [...message.seen, seenBy] : [seenBy],
+        };
+      }
+      return message;
+    });
+
+    console.log(newMessages);
+
+    setMessages(newMessages);
+  };
+
   useEffect(() => {
     console.log(messages);
   }, [messages]);
@@ -225,6 +296,16 @@ const ContentLayout = () => {
                 parsedResponse.isPinned
               );
             }
+
+            if (parsedResponse.isGroup === "GROUP") {
+              seenMessageGroup(
+                parsedResponse.groupId,
+                parsedResponse.isPinned,
+                parsedResponse.seeMessage,
+                parsedResponse.seenBy
+              );
+              console.log("test");
+            }
             console.log(parsedResponse);
           }
         });
@@ -263,8 +344,6 @@ const ContentLayout = () => {
         `http://localhost:8080/api/chat/${value}`
       );
       const data = response.data.data;
-
-      console.log(data);
 
       const unPinned: userChat[] = data.unPinned.map((item: userChat) => ({
         id: item.id,
@@ -325,7 +404,7 @@ const ContentLayout = () => {
       );
 
       const data = response.data.data;
-      const message: userMessage[] = data.map((value: any) => ({
+      const message: userMessage[] = data.map((value: userMessage) => ({
         createdOn: value.createdOn,
         senderId: value.senderId,
         receiverId: value.receiverId,
@@ -337,7 +416,7 @@ const ContentLayout = () => {
         message: value.message,
         isGroup: value.isGroup,
         name: value.name ? value.name : "unknown",
-        image: value.profileImage,
+        image: value.image,
       }));
 
       setMessages(message);
@@ -410,11 +489,13 @@ const ContentLayout = () => {
       <div className="h-full w-[70%] py-4">
         {/* from flowbite */}
         <RightContent
+          profile={profile}
           sendMessage={handleSendMessage}
           messages={messages}
           userId={value}
           name={name}
           member={member}
+          isGroup={isGroup}
         />
       </div>
     </div>

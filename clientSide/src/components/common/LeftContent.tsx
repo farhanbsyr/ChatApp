@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LastMessage } from "../../types";
 import UserChat from "../Chat/UserChat";
 import profile from "@/assets/muhammadAli.jpg";
 import { ScrollArea } from "../ui/scroll-area";
+import avatarUser from "@/assets/user.png";
+import avatarGroup from "@/assets/group (1).png";
 
 interface ProfileImage {
   image: string;
@@ -11,8 +13,8 @@ interface ProfileImage {
 
 interface LeftContentProps {
   onChangeConvertation: any;
-  pinnedMessage?: UserChat[];
-  unPinnedMessage?: UserChat[];
+  pinnedMessage?: userChat[];
+  unPinnedMessage?: userChat[];
   onSeenMessage: any;
 }
 
@@ -21,7 +23,7 @@ interface sendUser {
   receiverId: number;
 }
 
-interface UserChat {
+interface userChat {
   id: number;
   handphoneNumber: number;
   name: string;
@@ -45,6 +47,7 @@ const LeftContent: React.FC<LeftContentProps> = ({
   onSeenMessage,
 }) => {
   const [selected, setSelected] = useState<string>("");
+  const [keyword, setKeyword] = useState<string>("");
   const now = new Date();
   const nowToday = now.getDate();
   const nowDay = now.getDay();
@@ -94,23 +97,37 @@ const LeftContent: React.FC<LeftContentProps> = ({
     name: string,
     member: number,
     sendUser: sendUser,
-    unSeenMessage: number
+    unSeenMessage: number,
+    isGroup: boolean,
+    profile: string
   ) => {
-    onChangeConvertation(id, type, name, member, sendUser);
+    onChangeConvertation(id, type, name, member, sendUser, isGroup, profile);
     onSeenMessage(unSeenMessage);
   };
 
-  const chatMessage: UserChat[] = [
+  const chatMessage: userChat[] = [
     ...(pinnedMessage || []),
     ...(unPinnedMessage || []),
   ];
+
+  useEffect(() => {
+    console.log(chatMessage);
+  }, [chatMessage]);
+
+  // search by name
+  const filteredMsg: userChat[] =
+    keyword.trim() === ""
+      ? chatMessage
+      : chatMessage.filter((message: userChat) => {
+          return message.name.toLowerCase().includes(keyword.toLowerCase());
+        });
 
   return (
     // List All chat
     <div className="flex flex-col h-full">
       {/* Search  */}
       <div className="pr-2 mb-4">
-        <form className="max-w-md mx-auto">
+        <form className="mx-auto ">
           {/*  for="default-search" */}
           <div className="relative">
             <div className="absolute inset-y-0 flex items-center pointer-events-none start-0 ps-3">
@@ -133,7 +150,8 @@ const LeftContent: React.FC<LeftContentProps> = ({
             <input
               type="search"
               id="default-search"
-              className="block w-full p-2 text-[12px] leading-5  text-gray-900 border border-gray-300 rounded-[16px] ps-10 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              onChange={(e) => setKeyword(e.target.value)}
+              className="block w-full p-2 text-[12px] leading-5  text-gray-900 border border-gray-300 rounded-[10px] ps-10 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="Search Mockups, Logos..."
               required
             />
@@ -143,11 +161,13 @@ const LeftContent: React.FC<LeftContentProps> = ({
 
       <ScrollArea className="pr-2">
         <div className="flex flex-col gap-2">
-          {chatMessage != null ? (
-            chatMessage?.map((item) => {
+          {filteredMsg != null ? (
+            filteredMsg.map((item) => {
               const userProfile = item.profileImage?.image
                 ? `data:image/jpg;base64,${item.profileImage.image}`
-                : profile;
+                : item.isGroup
+                ? avatarGroup
+                : avatarUser;
               let isGroup: string = "GROUP";
 
               const date = new Date(item.createdOn);
@@ -181,6 +201,13 @@ const LeftContent: React.FC<LeftContentProps> = ({
                 receiverId: item.id,
               };
 
+              let userImage =
+                item.profileImage != null
+                  ? `data:image/jpeg;base64,${item.profileImage.image}`
+                  : item.isGroup
+                  ? avatarGroup
+                  : avatarUser;
+
               return (
                 <div
                   key={item.isGroup ? item.id + isGroup : item.id}
@@ -191,7 +218,9 @@ const LeftContent: React.FC<LeftContentProps> = ({
                       item.name,
                       item.memberGroup,
                       sendUser,
-                      item.unSeenMessage
+                      item.unSeenMessage,
+                      item.isGroup,
+                      userImage
                     );
                     setSelected(
                       item.isGroup ? item.id + isGroup + "" : item.id + ""
