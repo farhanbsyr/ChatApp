@@ -24,7 +24,11 @@ public interface UserGroupsRepository extends JpaRepository<UserGroups, Long> {
                     """, nativeQuery = true)
         List<UserGroups> listUserGroupByIdGroup (Long id);
 
-        
+        @Query(value  = """
+                select * from user_groups ug where group_id = ?1 and user_id = ?2;
+                            """, nativeQuery = true)
         UserGroups findByGroupIdAndUserId(Long groupId, Long userId);
+        
+        
 
 }

@@ -1,6 +1,5 @@
 package com.portofolio.talkify.controller;
 
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -22,19 +21,15 @@ import org.springframework.web.multipart.MultipartFile;
 import com.portofolio.talkify.modal.Group;
 import com.portofolio.talkify.modal.ProfileImage;
 import com.portofolio.talkify.modal.User;
-import com.portofolio.talkify.modal.UserFriends;
 import com.portofolio.talkify.modal.UserGroups;
 import com.portofolio.talkify.modal.UserMessage;
 import com.portofolio.talkify.repository.GroupRepository;
 import com.portofolio.talkify.repository.ProfileImageRepository;
-import com.portofolio.talkify.repository.UserFriendsRepository;
 import com.portofolio.talkify.repository.UserGroupsRepository;
 import com.portofolio.talkify.repository.UserMessageRepository;
 import com.portofolio.talkify.repository.UserRepository;
 import com.portofolio.talkify.utility.ApiResponse;
 import com.portofolio.talkify.utility.ResponseUtil;
-
-import jakarta.transaction.Transactional;
 
 @RestController
 @CrossOrigin("*")
@@ -49,9 +44,6 @@ public class ApiUserController {
 
     @Autowired
     private UserGroupsRepository userGroupsRepository;
-
-    @Autowired
-    private UserFriendsRepository userFriendsRepository;
 
     @Autowired
     private UserMessageRepository userMessageRepository;

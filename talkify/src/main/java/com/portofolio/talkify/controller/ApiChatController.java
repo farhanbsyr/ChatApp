@@ -168,4 +168,10 @@ public class ApiChatController {
             return ResponseUtil.generateErrorResponse("Error!", e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+
+
+    @GetMapping("/coba")
+    public String greet(){
+        return "test spring security";
+    }
 }

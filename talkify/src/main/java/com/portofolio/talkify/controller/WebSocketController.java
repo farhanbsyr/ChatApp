@@ -1,6 +1,5 @@
 package com.portofolio.talkify.controller;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -16,12 +15,10 @@ import com.portofolio.talkify.Notification.NotificationSeen;
 import com.portofolio.talkify.Notification.NotificationTYPE;
 import com.portofolio.talkify.Notification.NotificationUser;
 import com.portofolio.talkify.modal.Group;
-import com.portofolio.talkify.modal.GroupMessage;
 import com.portofolio.talkify.modal.User;
 import com.portofolio.talkify.modal.UserConvertation;
 import com.portofolio.talkify.modal.UserGroups;
 import com.portofolio.talkify.modal.UserMessage;
-import com.portofolio.talkify.repository.GroupMessageRepository;
 import com.portofolio.talkify.repository.GroupRepository;
 import com.portofolio.talkify.repository.UserConvertaionRepository;
 import com.portofolio.talkify.repository.UserGroupsRepository;
@@ -45,9 +42,6 @@ public class WebSocketController {
 
     @Autowired 
     private GroupRepository groupRepository;
-
-    @Autowired 
-    private GroupMessageRepository groupMessageRepository;
 
     @Autowired
     private UserGroupsRepository userGroupsRepository;
@@ -97,10 +91,11 @@ public class WebSocketController {
         }
      }
 
+    @Transactional
     @MessageMapping("/enterMessage")
     public void enterMessage(NotificationSeen notificationSeen){
         Map<String, Object> response = new HashMap<>();
-        ArrayList<Object> listResponse = new ArrayList<>();
+        // ArrayList<Object> listResponse = new ArrayList<>();
 
         if (notificationSeen.getMessageTYPE() == MessageTYPE.TEXT) {
             List<UserMessage> listMessageFalse = userMessageRepository.listFalseMessage(notificationSeen.getConversationId(), notificationSeen.getUserId());
@@ -114,19 +109,18 @@ public class WebSocketController {
             }
 
             for (UserMessage userMessage : listMessageFalse) {
-                Map<String, Object> responObj = new HashMap<>();
+                // Map<String, Object> responObj = new HashMap<>();
                 userMessage.setIsSeen(true);
                 userMessageRepository.save(userMessage);
 
-                responObj.put("messageId", userMessage.getId());
-                responObj.put("isSeen", userMessage.getIsSeen());
+                // responObj.put("messageId", userMessage.getId());
+                // responObj.put("isSeen", userMessage.getIsSeen());
                 
-                listResponse.add(responObj);
+                // listResponse.add(responObj);
             }
 
             response.put("conversationId", userConvertation.getId());
             response.put("isPinned", userConvertation.getIsPINNED());
-            response.put("seen", listResponse);
             response.put("type", NotificationTYPE.SEENMESSAGE);
             response.put("isGroup", MessageTYPE.TEXT);
     
@@ -134,13 +128,14 @@ public class WebSocketController {
             simpMessagingTemplate.convertAndSend("/topic/" + userConvertation.getUserDuaId() , response);
             return;
         }
-
+        System.out.println("sampesini gasih koca");
         if (notificationSeen.getMessageTYPE() == MessageTYPE.GROUP) {
+            System.out.println("benergasih nih");
             UserGroups userGroups = userGroupsRepository.findByGroupIdAndUserId(notificationSeen.getConversationId(), notificationSeen.getUserId());
-            List<GroupMessage> listGroupMessages = groupMessageRepository.listFalseGroupMessages(notificationSeen.getConversationId(), notificationSeen.getUserId(), userGroups.getSeeMessage());
-            
+            // List<GroupMessage> listGroupMessages = groupMessageRepository.listFalseGroupMessages(notificationSeen.getConversationId(), notificationSeen.getUserId(), userGroups.getSeeMessage());
+            System.out.println("kocag bgt new bap");
             List<UserGroups> listUserGroups = userGroupsRepository.listGroupsByGroupId(userGroups.getGroupId());
-            
+            System.out.println("kocag bgt new");
             Group group = groupRepository.findById(notificationSeen.getConversationId()).orElse(null);
 
             if (group == null) {
@@ -155,16 +150,19 @@ public class WebSocketController {
             seenBy.put("userId", userGroups.getUser().getId());
             seenBy.put("name", userGroups.getUser().getName());
 
-            for (GroupMessage groupMessage : listGroupMessages) {
-                listResponse.add(groupMessage.getId());
-            }
+            // for (GroupMessage groupMessage : listGroupMessages) {
+            //     listResponse.add(groupMessage.getId());
+            // }
+
+            response.put("seeMessage", userGroups.getSeeMessage());
 
             userGroups.setSeeMessage(new Date());
             userGroupsRepository.save(userGroups);
 
+            response.put("groupId", userGroups.getGroupId());
             response.put("isPinned", userGroups.getIsPINNED());
             response.put("seenBy", seenBy);
-            response.put("seen", listResponse);
+            // response.put("seen", listResponse);
             response.put("type", NotificationTYPE.SEENMESSAGE);
             response.put("isGroup", MessageTYPE.GROUP);
            

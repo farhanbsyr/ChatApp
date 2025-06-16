@@ -296,11 +296,11 @@ public class ChatService {
         message.put("seen", isSeenMessageGroup(groupMessage.getGroupId(), groupMessage.getCreatedOn()));
          
         if (user.getIdProfileImage() != null) {
-            message.put("profileImage", user.getProfileImage());
+            message.put("image", user.getProfileImage());
         } 
 
         if (user.getIdProfileImage() == null) {
-            message.put("profileImage", user.getIdProfileImage());
+            message.put("image", user.getIdProfileImage());
         }
 
         message.put("isGroup", true);
@@ -317,15 +317,20 @@ public class ChatService {
         return false;
     }
 
-    public Object isSeenMessageGroup(Long groupId, Date createOnMsg){
-        Map<String, Object> response = new HashMap<>();
+    public ArrayList<Object> isSeenMessageGroup(Long groupId, Date createOnMsg){
+        ArrayList<Object> responseList = new ArrayList<>();
 
         List<UserGroups> listUser = userGroupsRepository.listUserGroupByIdGroup(groupId);
         for (UserGroups user : listUser) {
             if (user.getSeeMessage().after(createOnMsg)) {
+                Map<String, Object> response = new HashMap<>();
                 response.put("name", user.getUser().getName());
+                response.put("userId", user.getUserId());
+
+                responseList.add(response);
             }
         }
-        return response;
+        return responseList;
+        
     }
 }
