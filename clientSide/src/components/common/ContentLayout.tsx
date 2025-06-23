@@ -4,6 +4,8 @@ import RightContent from "./RightContent";
 import axios from "axios";
 import { LastMessage } from "../../types";
 import { Client } from "@stomp/stompjs";
+import api from "@/api/axiosApi";
+import refreshApi from "@/api/refreshApi";
 
 interface ProfileImage {
   image: string;
@@ -133,6 +135,13 @@ const ContentLayout = () => {
     setUnPinnedMessage(sorted);
   };
 
+  const sortedMsg = (unSortedMsg: any) => {
+    const sorted = [...unSortedMsg].sort((a, b) => {
+      return new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime();
+    });
+    return sorted;
+  };
+
   const seenMessageText = (conversationIdSocket: number, isPinned: boolean) => {
     if (!isPinned) {
       const currentUnPinned = unPinnedMessageRef.current;
@@ -205,7 +214,6 @@ const ContentLayout = () => {
         }
         return message;
       });
-
       setUnPinnedMessage(newUnPinnedMessage);
     }
 
@@ -340,8 +348,11 @@ const ContentLayout = () => {
 
   const fetchAllFriendsData = async (value: number) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8080/api/chat/${value}`
+      const response = await api.get(
+        `http://localhost:8080/api/chat/${value}`,
+        {
+          withCredentials: true,
+        }
       );
       const data = response.data.data;
 
@@ -361,7 +372,7 @@ const ContentLayout = () => {
         memberGroup: item.memberGroup,
         unSeenMessage: item.unSeenMessage,
       }));
-      setUnPinnedMessage(unPinned);
+      setUnPinnedMessage(sortedMsg(unPinned));
 
       const pinned: userChat[] = data.pinned.map((item: userChat) => ({
         id: item.id,
@@ -379,7 +390,7 @@ const ContentLayout = () => {
         memberGroup: item.memberGroup,
         unSeenMessage: item.unSeenMessage,
       }));
-      setPinnedMessage(pinned);
+      setPinnedMessage(sortedMsg(pinned));
     } catch (error) {
       console.log(error);
     }
@@ -399,8 +410,11 @@ const ContentLayout = () => {
     if (convertationId === null) return;
 
     try {
-      const response = await axios.get(
-        `http://localhost:8080/api/chat/getMessage/${convertationId}?message=${messageTYPE}`
+      const response = await api.get(
+        `http://localhost:8080/api/chat/getMessage/${convertationId}?message=${messageTYPE}`,
+        {
+          withCredentials: true,
+        }
       );
 
       const data = response.data.data;
@@ -420,7 +434,7 @@ const ContentLayout = () => {
       }));
 
       setMessages(message);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
     }
   };

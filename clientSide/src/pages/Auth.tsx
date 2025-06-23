@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authSchema } from "@/schemas/authSchema";
+import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Auth = () => {
   const [email, setEmail] = useState<string>("");
@@ -11,6 +13,28 @@ const Auth = () => {
     email?: string[];
     password?: string[];
   }>({});
+  const navigate = useNavigate();
+
+  const postLogin = async (username: string, password: string) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/login",
+        {
+          username,
+          password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      console.log("Login sukses:", response.data);
+      navigate("/");
+      return response.data;
+    } catch (error: any) {
+      console.error("Login gagal:", error.response?.data || error.message);
+      throw error;
+    }
+  };
 
   const handleSubmit = () => {
     const result = authSchema.safeParse({ email, password });
@@ -28,7 +52,8 @@ const Auth = () => {
       return;
     }
 
-    console.log("sukses nih");
+    postLogin(email, password);
+    console.log(email + " dan " + password);
 
     setEmail("");
     setPassword("");
@@ -37,11 +62,14 @@ const Auth = () => {
 
   return (
     <div className="flex w-full h-full">
+      {/* Left Side */}
       <div className="left-side w-[50%] bg bg-black ">
         <div>
           <img src="" alt="" />
         </div>
       </div>
+
+      {/* Right Side */}
       <div className="right-side w-[50%] flex flex-col justify-center items-center">
         <div className="max-w-[500px] flex flex-col gap-8">
           <div className="text-3xl font-bold">
