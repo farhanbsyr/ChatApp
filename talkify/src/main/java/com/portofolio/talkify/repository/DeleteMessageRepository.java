@@ -3,7 +3,6 @@ package com.portofolio.talkify.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.portofolio.talkify.Notification.MessageTYPE;
 import com.portofolio.talkify.modal.DeletedMessage;
 
 public interface DeleteMessageRepository extends JpaRepository<DeletedMessage, Long> {

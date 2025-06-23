@@ -28,6 +28,10 @@ public class ApiAuthController {
     public Object userRegister(@RequestBody User user){
         return authService.register(user);
     }
-}
 
-// regis ke savev
+    @PostMapping("/logout")
+    public Object logout(){
+        return authService.clearCookie();
+    }
+
+}

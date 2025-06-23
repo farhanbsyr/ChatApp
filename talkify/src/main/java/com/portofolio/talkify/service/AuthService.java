@@ -35,19 +35,31 @@ public class AuthService {
         Authentication authentication = 
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(users.getUsername(), users.getPassword()));
         
+        long expiredAccessToken = 15 * 60;
+        // long expiredRefreshToken = 7 * 24 * 60 * 60;
         if (authentication.isAuthenticated()) {
-            String token = jwtService.generateToken(users.getUsername());
+            String token = jwtService.generateToken(users.getUsername(), expiredAccessToken * 1000);
+            // String refreshToken = jwtService.generateToken(users.getUsername(), expiredRefreshToken * 1000);
 
-            ResponseCookie cookie = ResponseCookie.from("jwt", token)
+            ResponseCookie cookie = ResponseCookie.from("access_token", token)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(24 * 60 * 60)
+                .maxAge(expiredAccessToken)
                 .sameSite("Strict")
                 .build();
 
+            // ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+            //     .httpOnly(true)
+            //     .secure(true)
+            //     .path("/")
+            //     .maxAge(expiredRefreshToken)
+            //     .sameSite("Strict")
+            //     .build();
+
             return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                // .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(Map.of("message", "Login sukses"));
         }
         
@@ -60,5 +72,21 @@ public class AuthService {
         user.setCreatedOn(new Date());
         user.setIsDelete(false);
         return userRepository.save(user);
+    }
+
+    public ResponseEntity<Map<String,String>> clearCookie(){
+        ResponseCookie deleteCookie = ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+            return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .body(Map.of("message", "logout sukses"));
+
+        
     }
 }

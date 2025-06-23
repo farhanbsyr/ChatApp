@@ -16,6 +16,7 @@ import com.portofolio.talkify.service.MyUserDetailsService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -32,14 +33,44 @@ public class Jwtfilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         
-        String authHeader = request.getHeader("Authorization");
+        // String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
+        // String refreshTokeh = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            System.out.println("ini cookie");
+            System.out.println(cookies);
+           
+            for (Cookie cookie : cookies){
+                System.out.println("Nama Cookie: " + cookie.getName());
+                System.out.println("Value: " + cookie.getValue());
+                if (cookie.getName().equals("access_token")) {
+                    token = cookie.getValue();
+                }
+                // if (cookie.getName().equals("refresh_token")) {
+                //     refreshTokeh = cookie.getValue();
+                // }
+            }
+        }
+
+        System.out.println("Token nya ini: " + token);
+
+        if (token != null) {
             username = jwtService.extractUserName(token);
         }
+
+        // if (token == null) {
+        //     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        //     response.getWriter().write("Access token is missing");
+        //     return;
+        // }
+
+        // if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        //     token = authHeader.substring(7);
+        //     username = jwtService.extractUserName(token);
+        // }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             
@@ -54,6 +85,13 @@ public class Jwtfilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
+
+        
+        // if (refreshTokeh != null && token == null) {
+        //     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        //     response.getWriter().write("Access token is missing, please refresh");
+        //     return;
+        // }
 
         filterChain.doFilter(request, response);
     }

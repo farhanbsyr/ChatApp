@@ -32,7 +32,7 @@ public class JWTService {
         }
     }
 
-    public String generateToken(String username){
+    public String generateToken(String username, long expiredTime){
         Map <String, Object> claims = new HashMap<>();
 
         return Jwts.builder()
@@ -40,11 +40,10 @@ public class JWTService {
                 .add(claims)
                 .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 60))
+                .expiration(new Date(System.currentTimeMillis() + expiredTime))
                 .and()
                 .signWith(getKey())
                 .compact();
-                
 
     }
 
@@ -76,7 +75,7 @@ public class JWTService {
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token)); 
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 

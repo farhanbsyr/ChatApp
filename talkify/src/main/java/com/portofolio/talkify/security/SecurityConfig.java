@@ -40,10 +40,10 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(req -> 
-                    req.requestMatchers("api/auth/**")
+                    req.requestMatchers("api/auth/**", "api/token/refresh")
                     .permitAll()
                     .anyRequest().authenticated())
-                    .httpBasic(Customizer.withDefaults())
+                    // .httpBasic(Customizer.withDefaults())
                     .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .addFilterBefore(jwtfilter,UsernamePasswordAuthenticationFilter.class)
