@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import LeftContent from "./LeftContent";
 import RightContent from "./RightContent";
-import axios from "axios";
 import { LastMessage } from "../../types";
 import { Client } from "@stomp/stompjs";
 import api from "@/api/axiosApi";
-import refreshApi from "@/api/refreshApi";
 
 interface ProfileImage {
   image: string;
@@ -58,12 +56,11 @@ interface userChat {
   unSeenMessage: number;
 }
 
-interface profileGroup {
-  image: string;
-  idImage: number;
+interface ContentLayoutProps {
+  idUser: number;
 }
 
-const ContentLayout = () => {
+const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser }) => {
   const [convertationId, setConvertationId] = useState<number | null>(null);
   const [pinnedMessage, setPinnedMessage] = useState<userChat[]>();
   const [unPinnedMessage, setUnPinnedMessage] = useState<userChat[]>();
@@ -74,7 +71,6 @@ const ContentLayout = () => {
   const [member, setMember] = useState<number | null>(null);
   const [isGroup, setIsGroup] = useState<boolean>(false);
   const [profile, setProfile] = useState<string>("");
-  let value: number = 1;
 
   const hasConnected = useRef(false);
   const clientRef = useRef<Client | null>(null);
@@ -149,8 +145,6 @@ const ContentLayout = () => {
 
       const newUnPinnedMessage = currentUnPinned?.map((message) => {
         if (message.conversationId === conversationIdSocket) {
-          console.log("convertationId" + "" + message.conversationId);
-
           return {
             ...message,
             unSeenMessage: 0,
@@ -158,8 +152,6 @@ const ContentLayout = () => {
         }
         return message;
       });
-      console.log(newUnPinnedMessage);
-
       setUnPinnedMessage(newUnPinnedMessage);
     }
 
@@ -247,14 +239,8 @@ const ContentLayout = () => {
       return message;
     });
 
-    console.log(newMessages);
-
     setMessages(newMessages);
   };
-
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
 
   useEffect(() => {
     if (unPinnedMessage) {
@@ -279,14 +265,12 @@ const ContentLayout = () => {
       brokerURL: "ws://localhost:8080/ws",
       onConnect: () => {
         console.log("Connected!");
-        client.subscribe(`/topic/${value}`, (response: any) => {
+        client.subscribe(`/topic/${idUser}`, (response: any) => {
           const parsedResponse: any = JSON.parse(response.body);
-          console.log(JSON.parse(response.body));
 
           // get or send message
           if (parsedResponse.type === "MESSAGE") {
             const messageResponse: userMessage = parsedResponse.message;
-            console.log("Received : ", messageResponse);
             setMessages((preventMessages) => [
               ...preventMessages,
               messageResponse,
@@ -297,7 +281,6 @@ const ContentLayout = () => {
 
           // seen message
           if (parsedResponse.type === "SEENMESSAGE") {
-            console.log("step 1 ok");
             if (parsedResponse.isGroup === "TEXT") {
               seenMessageText(
                 parsedResponse.conversationId,
@@ -312,14 +295,11 @@ const ContentLayout = () => {
                 parsedResponse.seeMessage,
                 parsedResponse.seenBy
               );
-              console.log("test");
             }
-            console.log(parsedResponse);
           }
         });
 
         client.subscribe(`/topic/common`, (response: any) => {
-          console.log(response);
           const parsedResponse: notification = JSON.parse(response.body);
           console.log("Received : ", parsedResponse);
         });
@@ -346,10 +326,10 @@ const ContentLayout = () => {
     }
   }, []);
 
-  const fetchAllFriendsData = async (value: number) => {
+  const fetchAllFriendsData = async (idUser: number) => {
     try {
       const response = await api.get(
-        `http://localhost:8080/api/chat/${value}`,
+        `http://localhost:8080/api/chat/${idUser}`,
         {
           withCredentials: true,
         }
@@ -397,8 +377,10 @@ const ContentLayout = () => {
   };
 
   useEffect(() => {
-    fetchAllFriendsData(value);
-  }, []);
+    if (idUser != null) {
+      fetchAllFriendsData(idUser);
+    }
+  }, [idUser]);
 
   useEffect(() => {
     if (convertationId != null) {
@@ -418,19 +400,19 @@ const ContentLayout = () => {
       );
 
       const data = response.data.data;
-      const message: userMessage[] = data.map((value: userMessage) => ({
-        createdOn: value.createdOn,
-        senderId: value.senderId,
-        receiverId: value.receiverId,
-        id: value.id,
-        isDelete: value.isDelete,
-        isSeen: value.isSeen,
-        seen: value.seen,
-        isUnsent: value.isUnsent,
-        message: value.message,
-        isGroup: value.isGroup,
-        name: value.name ? value.name : "unknown",
-        image: value.image,
+      const message: userMessage[] = data.map((idUser: userMessage) => ({
+        createdOn: idUser.createdOn,
+        senderId: idUser.senderId,
+        receiverId: idUser.receiverId,
+        id: idUser.id,
+        isDelete: idUser.isDelete,
+        isSeen: idUser.isSeen,
+        seen: idUser.seen,
+        isUnsent: idUser.isUnsent,
+        message: idUser.message,
+        isGroup: idUser.isGroup,
+        name: idUser.name ? idUser.name : "unknown",
+        image: idUser.image,
       }));
 
       setMessages(message);
@@ -452,7 +434,7 @@ const ContentLayout = () => {
 
     const payload = {
       conversationId: convertationId,
-      userId: value,
+      userId: idUser,
       messageTYPE: typeConvertation,
     };
 
@@ -475,7 +457,7 @@ const ContentLayout = () => {
 
     const payload = {
       convertationId: convertationId,
-      senderId: value,
+      senderId: idUser,
       receiverId: sendUser?.receiverId,
       message: message,
       isSeen: isSeen,
@@ -506,7 +488,7 @@ const ContentLayout = () => {
           profile={profile}
           sendMessage={handleSendMessage}
           messages={messages}
-          userId={value}
+          userId={idUser}
           name={name}
           member={member}
           isGroup={isGroup}

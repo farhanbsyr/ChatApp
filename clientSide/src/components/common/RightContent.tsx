@@ -38,7 +38,6 @@ const RightContent: React.FC<RightContentProps> = ({
   isGroup,
   profile,
 }) => {
-  userId = 1;
   useEffect(() => {
     console.log(messages);
   }, [messages]);
