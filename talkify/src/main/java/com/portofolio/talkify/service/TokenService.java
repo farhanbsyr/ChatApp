@@ -21,6 +21,7 @@ public class TokenService {
         String refreshToken = null;
         String username = null;
         String token = null;
+        long userId;
         long expiredAccessToken = 15 * 60 * 1000;
 
 
@@ -43,7 +44,8 @@ public class TokenService {
 
         if (refreshToken != null) {
             username = jwtService.extractUserName(refreshToken);
-            token = jwtService.generateToken(username, expiredAccessToken);
+            userId = jwtService.extractUserId(refreshToken);
+            token = jwtService.generateToken(username, userId, expiredAccessToken);
         }
 
          ResponseCookie cookie = ResponseCookie.from("access_token", token)

@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.portofolio.talkify.DTO.LoginDTO;
+import com.portofolio.talkify.DTO.UserLoginProjection;
 import com.portofolio.talkify.modal.User;
 import com.portofolio.talkify.repository.UserRepository;
 
@@ -35,10 +36,11 @@ public class AuthService {
         Authentication authentication = 
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(users.getUsername(), users.getPassword()));
         
+        UserLoginProjection user = userRepository.findUserByEmailOrNumber(users.getUsername());
         long expiredAccessToken = 15 * 60;
         // long expiredRefreshToken = 7 * 24 * 60 * 60;
         if (authentication.isAuthenticated()) {
-            String token = jwtService.generateToken(users.getUsername(), expiredAccessToken * 1000);
+            String token = jwtService.generateToken(users.getUsername(), user.getId(), expiredAccessToken * 1000);
             // String refreshToken = jwtService.generateToken(users.getUsername(), expiredRefreshToken * 1000);
 
             ResponseCookie cookie = ResponseCookie.from("access_token", token)

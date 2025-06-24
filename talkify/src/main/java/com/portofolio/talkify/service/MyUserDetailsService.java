@@ -6,9 +6,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.portofolio.talkify.modal.User;
+import com.portofolio.talkify.DTO.UserLoginProjection;
 import com.portofolio.talkify.modal.UserPrincipal;
 import com.portofolio.talkify.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
@@ -17,8 +19,9 @@ public class MyUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
 
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
-        User user = userRepository.findUserByEmailOrNumber(identifier);
+        UserLoginProjection user = userRepository.findUserByEmailOrNumber(identifier);
 
         System.out.println(user);
         if (user == null) {

@@ -54,11 +54,13 @@ public class Jwtfilter extends OncePerRequestFilter {
                 // }
             }
         }
+        
 
-        System.out.println("Token nya ini: " + token);
 
         if (token != null) {
             username = jwtService.extractUserName(token);
+            System.out.println("Raw Token: [" + token + "]");
+        System.out.println("Token Length: " + token.length());
         }
 
         // if (token == null) {

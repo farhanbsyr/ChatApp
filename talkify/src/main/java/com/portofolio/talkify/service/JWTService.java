@@ -32,9 +32,9 @@ public class JWTService {
         }
     }
 
-    public String generateToken(String username, long expiredTime){
+    public String generateToken(String username, long userId, long expiredTime){
         Map <String, Object> claims = new HashMap<>();
-
+        claims.put("id", userId);
         return Jwts.builder()
                 .claims()
                 .add(claims)
@@ -81,5 +81,18 @@ public class JWTService {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);    
+    }
+
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        Object idClaim = claims.get("id");
+        if (idClaim instanceof Integer) {
+        return ((Integer) idClaim).longValue(); // kadang JSON parser membaca angka sebagai Integer
+        } else if (idClaim instanceof Long) {
+            return (Long) idClaim;
+        } else if (idClaim instanceof String) {
+            return Long.parseLong((String) idClaim);
+        }
+        return null;  
     }
 }

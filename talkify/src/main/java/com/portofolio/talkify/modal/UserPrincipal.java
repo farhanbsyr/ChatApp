@@ -7,12 +7,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.portofolio.talkify.DTO.UserLoginProjection;
+
 public class UserPrincipal implements UserDetails {
 
-    private User user;
+    private UserLoginProjection user;
     private String inputIndentifier;
 
-    public UserPrincipal(User user, String inputIndentifier){
+    public UserPrincipal(UserLoginProjection user, String inputIndentifier){
         this.user = user;
         this.inputIndentifier = inputIndentifier;
     }

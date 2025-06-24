@@ -28,8 +28,12 @@ import com.portofolio.talkify.repository.ProfileImageRepository;
 import com.portofolio.talkify.repository.UserGroupsRepository;
 import com.portofolio.talkify.repository.UserMessageRepository;
 import com.portofolio.talkify.repository.UserRepository;
+import com.portofolio.talkify.service.JWTService;
 import com.portofolio.talkify.utility.ApiResponse;
 import com.portofolio.talkify.utility.ResponseUtil;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @CrossOrigin("*")
@@ -50,6 +54,9 @@ public class ApiUserController {
 
     @Autowired 
     private GroupRepository groupRepository;
+
+    @Autowired
+    private JWTService jwtService;
 
     // profile user
     @GetMapping("/{id}")
@@ -74,6 +81,31 @@ public class ApiUserController {
             return ResponseUtil.generateSuccessResponse("Success to get data user: " + userData.getName(), response);
         } catch (Exception e) {
             return ResponseUtil.generateErrorResponse("Failed to get data user", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("userId")
+    public ResponseEntity<ApiResponse<Object>> getUserId(HttpServletRequest request){
+        try {
+            String token = null;
+            Long userId = null;
+
+            Cookie[] cookies = request.getCookies();
+
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals("access_token")) {
+                        token = cookie.getValue();
+                    }
+                }
+            }
+            if (token != null) {
+                userId = jwtService.extractUserId(token);
+            }
+
+            return ResponseUtil.generateSuccessResponse("Success to get userId", userId);
+        } catch (Exception e) {
+            return ResponseUtil.generateErrorResponse("Failed to get user id", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
