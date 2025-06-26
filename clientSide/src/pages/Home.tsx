@@ -2,9 +2,12 @@ import SidebarCos from "../components/SidebarCos";
 import Content from "../components/Content";
 import { useEffect, useState } from "react";
 import api from "@/api/axiosApi";
+import AutoLogout from "@/hooks/AutoLogout";
 
 const Home = () => {
   const [userId, setUserId] = useState<number | null>(null);
+
+  AutoLogout();
 
   const getProfileUser = async () => {
     try {
