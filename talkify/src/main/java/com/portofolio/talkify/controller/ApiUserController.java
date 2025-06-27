@@ -58,15 +58,20 @@ public class ApiUserController {
     @Autowired
     private JWTService jwtService;
 
+
     // profile user
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Object>> getUserData(@PathVariable("id") Long userId){
         try {
             User userData = this.userRepository.findById(userId).orElse(null);
+            ProfileImage profileImage = null;
             if (userData == null) {
                 return ResponseUtil.generateErrorResponse("User is not found", userData, HttpStatus.NOT_FOUND);
             }
 
+            if (userData.getIdProfileImage() != null) {
+                profileImage = profileImageRepository.findImangeProfileUser(userId);
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", userData.getId());
@@ -74,8 +79,8 @@ public class ApiUserController {
             response.put("handphoneNumber", userData.getHandphoneNumber());
             response.put("email", userData.getEmail());
             response.put("profileImage", 
-                    userData.getProfileImage() != null
-                        ? Base64.getEncoder().encodeToString(userData.getProfileImage().getImage())
+                    profileImage != null
+                        ? Base64.getEncoder().encodeToString(profileImage.getImage())
                         : "");
 
             return ResponseUtil.generateSuccessResponse("Success to get data user: " + userData.getName(), response);

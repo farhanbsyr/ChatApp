@@ -19,4 +19,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             select * from users u where email = ?1 or "handphone-number" = ?1; 
             """, nativeQuery = true)
     UserLoginProjection findUserByEmailOrNumber(String userIdentity);
+
+    @Query(value = """
+            select * from users u where email = ?1 or "handphone-number" = ?1; 
+            """, nativeQuery = true)
+    User findFullUserByEmailOrNumber(String userIdentity);
 }
