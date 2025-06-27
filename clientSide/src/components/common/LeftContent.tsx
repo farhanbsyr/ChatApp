@@ -5,6 +5,7 @@ import profile from "@/assets/muhammadAli.jpg";
 import { ScrollArea } from "../ui/scroll-area";
 import avatarUser from "@/assets/user.png";
 import avatarGroup from "@/assets/group (1).png";
+import AddFriends from "../Friends/AddFriends";
 
 interface ProfileImage {
   image: string;
@@ -124,11 +125,10 @@ const LeftContent: React.FC<LeftContentProps> = ({
 
   return (
     // List All chat
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full">
       {/* Search  */}
       <div className="pr-2 mb-4">
         <form className="mx-auto ">
-          {/*  for="default-search" */}
           <div className="relative">
             <div className="absolute inset-y-0 flex items-center pointer-events-none start-0 ps-3">
               <svg
@@ -244,6 +244,8 @@ const LeftContent: React.FC<LeftContentProps> = ({
           )}
         </div>
       </ScrollArea>
+
+      <AddFriends />
     </div>
   );
 };

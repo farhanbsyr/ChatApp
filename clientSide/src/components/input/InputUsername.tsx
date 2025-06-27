@@ -6,18 +6,20 @@ interface InputUsernameProps {
   value: string;
   changeValueUsername: any;
   errors?: string[];
+  label: string;
 }
 const InputUsername: React.FC<InputUsernameProps> = ({
   value,
   changeValueUsername,
   errors,
+  label,
 }) => {
   const onChangeValue = (e: string) => {
     changeValueUsername(e);
   };
   return (
     <div className="input-field">
-      <Label htmlFor="username">Username</Label>
+      <Label htmlFor="username">{label}</Label>
       <Input
         type="text"
         id="username"

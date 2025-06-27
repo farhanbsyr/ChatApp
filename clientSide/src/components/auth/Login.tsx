@@ -4,7 +4,7 @@ import InputEmail from "../input/InputEmail";
 import InputPassword from "../input/InputPassword";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { authSchema } from "@/schemas/authSchema";
+import { loginSchema } from "@/schemas/auth/loginSchema";
 
 interface LoginProps {
   isRegister: any;
@@ -16,8 +16,6 @@ const Login: React.FC<LoginProps> = ({ isRegister }) => {
   const [errors, setErrors] = useState<{
     email?: string[];
     password?: string[];
-    number?: string[];
-    username?: string[];
   }>({});
   const navigate = useNavigate();
 
@@ -43,7 +41,7 @@ const Login: React.FC<LoginProps> = ({ isRegister }) => {
   };
 
   const handleSubmit = () => {
-    const result = authSchema.safeParse({ email, password });
+    const result = loginSchema.safeParse({ email, password });
 
     if (!result.success) {
       const fieldErrors: any = result.error.flatten().fieldErrors;

@@ -17,12 +17,12 @@ const InputTel: React.FC<InputTelProps> = ({
   };
   return (
     <div className="input-field">
-      <Label htmlFor="nomor">Nomor ponsel</Label>
+      <Label htmlFor="nomor">Phone number</Label>
       <Input
         type="tel"
         id="nomor"
         value={value}
-        placeholder="087812345678"
+        placeholder="08xxxxxxxxxx"
         className="w-full rounded-xl"
         onChange={(e) => onChangeValue(e.target.value)}
       />

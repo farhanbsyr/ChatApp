@@ -4,8 +4,8 @@ import InputEmail from "../input/InputEmail";
 import InputTel from "../input/InputTel";
 import InputPassword from "../input/InputPassword";
 import { Button } from "../ui/button";
-import { authSchema } from "@/schemas/authSchema";
 import api from "@/api/axiosApi";
+import { registerSchema } from "@/schemas/auth/registerSchema";
 
 interface RegisterProps {
   isRegister: any;
@@ -19,20 +19,29 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
   const [errors, setErrors] = useState<{
     email?: string[];
     password?: string[];
-    number?: string[];
+    nomor?: string[];
     username?: string[];
   }>({});
 
   const postRegister = async (
     username: string,
     email: string,
-    nomor: string,
+    handphoneNumber: string,
     password: string
   ) => {
     try {
-      const response = await api.post("", {
-        withCredentials: true,
-      });
+      const response = await api.post(
+        "auth/register",
+        {
+          name: username,
+          email,
+          handphoneNumber,
+          password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
       console.log(response);
     } catch (error) {
       console.log(error);
@@ -40,7 +49,12 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
   };
 
   const handleSubmit = () => {
-    const result = authSchema.safeParse({ email, password });
+    const result = registerSchema.safeParse({
+      email,
+      password,
+      nomor,
+      username,
+    });
 
     if (!result.success) {
       const fieldErrors: any = result.error.flatten().fieldErrors;
@@ -49,7 +63,7 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
       setErrors({
         email: fieldErrors.email?.[0],
         password: fieldErrors.password,
-        number: fieldErrors.number,
+        nomor: fieldErrors.nomor,
         username: fieldErrors.username,
       });
       console.log(errors);
@@ -65,6 +79,7 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
     setEmail("");
     setPassword("");
     setErrors({});
+    isRegister(false);
   };
 
   return (
@@ -82,6 +97,7 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
             value={username}
             changeValueUsername={setUsername}
             errors={errors.username}
+            label="Name"
           />
           {/* email */}
           <InputEmail
@@ -93,7 +109,7 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
           <InputTel
             value={nomor}
             changeValueTel={setNomor}
-            errors={errors.number}
+            errors={errors.nomor}
           />
 
           {/* password */}
@@ -104,10 +120,10 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
           />
         </div>
       </div>
-      <div className="button-field text-center">
+      <div className="text-center button-field">
         <Button
           onClick={handleSubmit}
-          className="px-10 py-5 mb-1 bg-black text-white rounded-md transition duration-300 ease-in-out hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95 "
+          className="px-10 py-5 mb-1 text-white transition duration-300 ease-in-out bg-black rounded-md hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95 "
           type="submit"
         >
           Sign In
@@ -117,7 +133,7 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
           Already have an account?{" "}
           <span
             onClick={() => isRegister(false)}
-            className="font-semibold hover:underline hover:text-blue-600 transition duration-300 ease-in-out"
+            className="font-semibold transition duration-300 ease-in-out hover:underline hover:text-blue-600"
           >
             Login
           </span>
