@@ -9,13 +9,12 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { AlertCircle, Plus } from "lucide-react";
-import { useState } from "react";
+import { Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import InputEmail from "../input/InputEmail";
 import InputTel from "../input/InputTel";
 import api from "@/api/axiosApi";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { toast } from "sonner";
 
 interface typeFriend {
@@ -34,7 +33,34 @@ const AddFriends = () => {
   const [clicked, setClicked] = useState<boolean>(false);
   const [search, setSearch] = useState<boolean>(true);
   const [isButtonDisabled, setIsButtonDisabled] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+
+  const [open, setOpen] = useState(false);
+
+  const addFriends = async (identity: string) => {
+    console.log(identity);
+
+    try {
+      const response = await api.post(
+        "friend/addFriend",
+        { identity: identity },
+        { withCredentials: true }
+      );
+
+      console.log(response);
+
+      setOpen(false);
+      toast.success("Friend added successfully!");
+    } catch (error: any) {
+      console.log(error);
+      if (error.status == 404 || error.status == 400) {
+        const response = error.response.data.message;
+        toast.error("Notification", {
+          description: response,
+        });
+      }
+    }
+  };
+
   const searchFriends = async (identity: string) => {
     try {
       console.log(friend);
@@ -47,26 +73,12 @@ const AddFriends = () => {
         { withCredentials: true }
       );
 
-      console.log(response.data);
-
-      if (response.data.data == null) {
-        setEmail("");
-        // tambahin message user is not found
-        return;
-      }
-
       setFriend(response.data.data);
       setIsFriend(true);
       setSearch(false);
-      setIsButtonDisabled(true);
       setEmail("");
     } catch (error: any) {
       console.log(error);
-      // if (error.status == 404 || error.status == 400) {
-      //   const response = error.response.data.message;
-      //   setError(response);
-      //   console.log(response);
-      // }
       if (error.status == 404 || error.status == 400) {
         const response = error.response.data.message;
         toast.error("Notification", {
@@ -77,13 +89,41 @@ const AddFriends = () => {
   };
 
   const handleSubmit = (email: string) => {
-    searchFriends(email);
+    if (search) {
+      searchFriends(email);
+    } else {
+      if (friend != null) {
+        addFriends(friend?.identity);
+      }
+    }
   };
+
+  useEffect(() => {
+    console.log(isButtonDisabled);
+  }, [isButtonDisabled]);
+
+  useEffect(() => {
+    if (search) {
+      if (email.trim() === "") {
+        setIsButtonDisabled(email.trim() === "");
+      } else {
+        setIsButtonDisabled(false);
+      }
+    } else {
+      if (friend?.isFriend) {
+        setIsButtonDisabled(true);
+      } else {
+        setIsButtonDisabled(!clicked);
+      }
+    }
+  }, [search, friend, clicked, email]);
 
   return (
     <>
       <Dialog
+        open={open}
         onOpenChange={(open) => {
+          setOpen(open);
           if (open) {
             setIsFriend(false);
             setFriend(undefined);
@@ -142,9 +182,11 @@ const AddFriends = () => {
                     changValueEmail={setEmail}
                     onFocus={() => {
                       setSearch(true);
-                      setIsButtonDisabled(false);
+                      setClicked(false);
                     }}
-                    onBlur={() => setSearch(false)}
+                    onBlur={() => {
+                      setSearch(false);
+                    }}
                   />
                 </div>
               ) : (
@@ -156,10 +198,8 @@ const AddFriends = () => {
               {isFriend ? (
                 <div
                   onClick={() => {
-                    setIsButtonDisabled(!isButtonDisabled);
                     setClicked(!clicked);
                   }}
-                  // onClick={() => setClicked(!clicked)}
                   className={`flex flex-row items-center w-full gap-2 p-3 border cursor-pointer rounded-xl ${
                     !clicked
                       ? "transition bg-white border-gray-300 shadow-sm  hover:shadow-md hover:border-gray-400"
@@ -195,10 +235,13 @@ const AddFriends = () => {
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
               <Button
-                type="submit"
+                type="button"
                 disabled={isButtonDisabled}
-                className={`${friend != null && friend.isFriend ? "  " : ""}`}
-                onClick={() => handleSubmit(email)}
+                onClick={() => {
+                  handleSubmit(email);
+                  alert("KECLICK 2 BANG!");
+                  console.log("KECLICK 2 BANG!");
+                }}
               >
                 {search
                   ? "Search"
@@ -210,14 +253,6 @@ const AddFriends = () => {
           </DialogContent>
         </form>
       </Dialog>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="w-4 h-4" />
-          <AlertTitle>Notification</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
     </>
   );
 };

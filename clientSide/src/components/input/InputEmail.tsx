@@ -8,6 +8,7 @@ interface inputTextProps {
   errors?: string[];
   onFocus?: any;
   onBlur?: any;
+  onMouseDown?: any;
 }
 
 const InputEmail: React.FC<inputTextProps> = ({
@@ -16,6 +17,7 @@ const InputEmail: React.FC<inputTextProps> = ({
   errors,
   onFocus,
   onBlur,
+  onMouseDown,
 }) => {
   const onChangeValue = (e: string) => {
     changValueEmail(e);
@@ -29,9 +31,10 @@ const InputEmail: React.FC<inputTextProps> = ({
         value={value}
         placeholder="Enter your email..."
         className="w-full rounded-xl"
+        // onMouseDown={onMouseDown}
         onChange={(e) => onChangeValue(e.target.value)}
         onFocus={onFocus}
-        onBlur={onBlur}
+        // onBlur={onBlur}
       />
       {errors && (
         <p className=" pl-1 text-[10px] font-semibold text-red-500">{errors}</p>
