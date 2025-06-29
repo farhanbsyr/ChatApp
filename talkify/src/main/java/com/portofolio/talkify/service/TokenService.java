@@ -63,4 +63,21 @@ public class TokenService {
         
     }
 
+    public String getTokenFromCookie (Cookie[] cookies, String tokenName){
+        String token = null;
+        
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(tokenName)) {
+                    token = cookie.getValue();
+                }
+            }
+        }
+
+        if (token == null) {
+            return "token has no value";
+        }
+        return token;
+    }
+
 }

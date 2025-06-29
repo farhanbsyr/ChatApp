@@ -42,13 +42,10 @@ public class ApiFriendController {
     }
 
     @PostMapping("/addFriend")
-    public ResponseEntity<ApiResponse<Object>> addFriend(HttpServletRequest request, @RequestBody String identity){
+    public ResponseEntity<ApiResponse<Object>> addFriend(HttpServletRequest request, @RequestBody Map<String, String> identity){
         try {
-            // return friendService.addFriend()
-
-
-
-            return null;
+            String identityUser = identity.get("identity");
+            return friendService.addFriend(identityUser, request);
         } catch (Exception e) {
             return ResponseUtil.generateErrorResponse("Failed to add friend", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

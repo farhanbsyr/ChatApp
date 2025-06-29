@@ -1,6 +1,7 @@
 package com.portofolio.talkify.service;
 
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +37,9 @@ public class FriendService {
     @Autowired
     JWTService jwtService;
 
+    @Autowired
+    TokenService tokenService;
+
     public ResponseEntity<ApiResponse<Object>> searchFriend(String identity, HttpServletRequest request) {
         Map<String, Object> result = new HashMap<>();
         String token = null;
@@ -51,18 +55,15 @@ public class FriendService {
                 }
             }
         }
-
         if (token != null) {
             userId = jwtService.extractUserId(token);
         }
 
         System.out.println("identity: " + identity);
         User userFriend = userRepository.findFullUserByEmailOrNumber(identity); 
-        
         if (userFriend == null) {
             return ResponseUtil.generateSuccessResponse("User is not found", userFriend, HttpStatus.NOT_FOUND);
         }
-
         if (userFriend.getIdProfileImage() != null) {
             ProfileImage profileImage = profileImageRepository.findImangeProfileUser(userFriend.getId());
             base64Image = Base64.getEncoder().encodeToString(profileImage.getImage());
@@ -85,8 +86,36 @@ public class FriendService {
         } else{
             result.put("isFriend", false);
         }
-
         return ResponseUtil.generateSuccessResponse("Success to get a user", result);
+    }
+
+    public ResponseEntity<ApiResponse<Object>> addFriend(String identityUser, HttpServletRequest request) {
+        String token = null;
+        Long userId = null;
+        token = tokenService.getTokenFromCookie(request.getCookies(), "access_token");
+
+        if (token.equals("token has no value")) {
+            return ResponseUtil.generateSuccessResponse("Token is no value", token, HttpStatus.BAD_REQUEST);
+        }
+
+        User friend = userRepository.findFullUserByEmailOrNumber(identityUser);
+
+        if (friend == null) {
+            return ResponseUtil.generateSuccessResponse("User is not found", null, HttpStatus.NOT_FOUND);
+        }
+
+        userId = jwtService.extractUserId(token);
+
+        UserFriends userFriends = new UserFriends();
+        userFriends.setUserId(userId);
+        userFriends.setUserFriendId(friend.getId());
+        userFriends.setCreatedBy(userId);
+        userFriends.setCreatedOn(new Date());
+        userFriends.setIsDelete(false);
+        userFriends.setIsSaved(true);
+
+        userFriendsRepository.save(userFriends);
+        return ResponseUtil.generateSuccessResponse("Success to save " + friend.getName(), null, HttpStatus.CREATED);
     }
 
 }
