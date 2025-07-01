@@ -21,9 +21,10 @@ interface notification {
 
 interface ContentLayoutProps {
   idUser: number;
+  client: Client;
 }
 
-const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser }) => {
+const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
   const [convertationId, setConvertationId] = useState<number | null>(null);
   const [pinnedMessage, setPinnedMessage] = useState<userChat[]>();
   const [unPinnedMessage, setUnPinnedMessage] = useState<userChat[]>();
@@ -35,8 +36,8 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser }) => {
   const [isGroup, setIsGroup] = useState<boolean>(false);
   const [profile, setProfile] = useState<string>("");
 
-  const hasConnected = useRef(false);
-  const clientRef = useRef<Client | null>(null);
+  // const hasConnected = useRef(false);
+  // const clientRef = useRef<Client | null>(null);
   const unPinnedMessageRef = useRef<userChat[]>();
   const pinnedMessageRef = useRef<userChat[]>();
   const messagesRef = useRef<userMessage[]>();
@@ -223,71 +224,119 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser }) => {
     }
   }, [messages]);
 
-  const initialiseConnections = () => {
-    const client = new Client({
-      brokerURL: "ws://localhost:8080/ws",
-      onConnect: () => {
-        console.log("Connected!");
-        client.subscribe(`/topic/${idUser}`, (response: any) => {
-          const parsedResponse: any = JSON.parse(response.body);
-
-          // get or send message
-          if (parsedResponse.type === "MESSAGE") {
-            const messageResponse: userMessage = parsedResponse.message;
-            setMessages((preventMessages) => [
-              ...preventMessages,
-              messageResponse,
-            ]);
-
-            sortingMessage(messageResponse);
-          }
-
-          // seen message
-          if (parsedResponse.type === "SEENMESSAGE") {
-            if (parsedResponse.isGroup === "TEXT") {
-              seenMessageText(
-                parsedResponse.conversationId,
-                parsedResponse.isPinned
-              );
-            }
-
-            if (parsedResponse.isGroup === "GROUP") {
-              seenMessageGroup(
-                parsedResponse.groupId,
-                parsedResponse.isPinned,
-                parsedResponse.seeMessage,
-                parsedResponse.seenBy
-              );
-            }
-          }
-        });
-
-        client.subscribe(`/topic/common`, (response: any) => {
-          const parsedResponse: notification = JSON.parse(response.body);
-          console.log("Received : ", parsedResponse);
-        });
-      },
-      onWebSocketError: () => {
-        console.log("Error with the websocket");
-      },
-      onStompError: () => {
-        console.log("Stomp error");
-      },
-      onDisconnect: () => {
-        console.log("Disconnected");
-      },
-    });
-    client.activate();
-
-    clientRef.current = client;
-  };
-
   useEffect(() => {
-    if (!hasConnected.current) {
-      initialiseConnections();
-      hasConnected.current = true;
-    }
-  }, []);
+    const subscriptionUser = client.subscribe(
+      `/topic/${idUser}`,
+      (response: any) => {
+        const parsedResponse: any = JSON.parse(response.body);
+
+        if (parsedResponse.type === "MESSAGE") {
+          const messageResponse: userMessage = parsedResponse.message;
+          setMessages((prev) => [...prev, messageResponse]);
+
+          sortingMessage(messageResponse);
+        }
+
+        if (parsedResponse.type === "SEENMESSAGE") {
+          if (parsedResponse.isGroup === "TEXT") {
+            seenMessageText(
+              parsedResponse.conversationId,
+              parsedResponse.isPinned
+            );
+          }
+
+          if (parsedResponse.isGroup === "GROUP") {
+            seenMessageGroup(
+              parsedResponse.groupId,
+              parsedResponse.isPinned,
+              parsedResponse.seeMessage,
+              parsedResponse.seenBy
+            );
+          }
+        }
+      }
+    );
+
+    const subscriptionCommon = client.subscribe(
+      `/topic/common`,
+      (response: any) => {
+        const parsedResponse: notification = JSON.parse(response.body);
+        console.log("Received:", parsedResponse);
+      }
+    );
+    console.log("masuk?");
+
+    return () => {
+      subscriptionUser.unsubscribe();
+      subscriptionCommon.unsubscribe();
+    };
+  }, [client, idUser]);
+
+  // const initialiseConnections = () => {
+  //   const client = new Client({
+  //     brokerURL: "ws://localhost:8080/ws",
+  //     onConnect: () => {
+  //       console.log("Connected!");
+  // client.subscribe(`/topic/${idUser}`, (response: any) => {
+  //   const parsedResponse: any = JSON.parse(response.body);
+
+  //   // get or send message
+  //   if (parsedResponse.type === "MESSAGE") {
+  //     const messageResponse: userMessage = parsedResponse.message;
+  //     setMessages((preventMessages) => [
+  //       ...preventMessages,
+  //       messageResponse,
+  //     ]);
+
+  //     sortingMessage(messageResponse);
+  //   }
+
+  //   // seen message
+  //   if (parsedResponse.type === "SEENMESSAGE") {
+  //     if (parsedResponse.isGroup === "TEXT") {
+  //       seenMessageText(
+  //         parsedResponse.conversationId,
+  //         parsedResponse.isPinned
+  //       );
+  //     }
+
+  //     if (parsedResponse.isGroup === "GROUP") {
+  //       seenMessageGroup(
+  //         parsedResponse.groupId,
+  //         parsedResponse.isPinned,
+  //         parsedResponse.seeMessage,
+  //         parsedResponse.seenBy
+  //       );
+  //     }
+  //   }
+  // });
+
+  // client.subscribe(`/topic/common`, (response: any) => {
+  //   const parsedResponse: notification = JSON.parse(response.body);
+  //   console.log("Received : ", parsedResponse);
+  // });
+  //     },
+  //     onWebSocketError: () => {
+  //       console.log("Error with the websocket");
+  //     },
+  //     onStompError: () => {
+  //       console.log("Stomp error");
+  //     },
+  //     onDisconnect: () => {
+  //       console.log("Disconnected");
+  //     },
+  //   });
+  //   client.activate();
+
+  //   clientRef.current = client;
+  // };
+
+  // useEffect(() => {
+  //   if (!hasConnected.current) {
+  //     initialiseConnections();
+  //     hasConnected.current = true;
+  //   }
+  // }, []);
 
   const fetchAllFriendsData = async (idUser: number) => {
     try {
@@ -385,7 +434,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser }) => {
   };
 
   const handleSeenMessage = (unSeenMessage: number) => {
-    const client = clientRef.current;
+    // const client = clientRef.current;
     if (!client) {
       console.log("Client is not yet active");
       return;
@@ -412,7 +461,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser }) => {
     isSeen: boolean,
     isUnsend: boolean
   ) => {
-    const client = clientRef.current;
+    // const client = clientRef.current;
     if (!client) {
       console.log("Client is not yet active");
       return;

@@ -18,6 +18,11 @@ import {
 } from "./ui/alert-dialog";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { string } from "zod";
+
+interface SidebarCosProps {
+  menu: any;
+}
 
 const listIcon = [
   {
@@ -42,8 +47,12 @@ const listIcon = [
   },
 ];
 
-const SidebarCos = () => {
+const SidebarCos: React.FC<SidebarCosProps> = ({ menu }) => {
   const navigate = useNavigate();
+
+  const onChangeMenu = (value: string) => {
+    menu(value);
+  };
 
   const logout = async () => {
     try {
