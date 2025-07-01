@@ -1,14 +1,16 @@
 import SidebarCos from "../components/SidebarCos";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "@/api/axiosApi";
 import AutoLogout from "@/hooks/AutoLogout";
 import ContentLayout from "@/components/common/ContentLayout";
 import { Client } from "@stomp/stompjs";
+import { profile } from "@/types";
 
 const Home = () => {
   const [userId, setUserId] = useState<number | null>(null);
-  const [menu, setMenu] = useState<string>("");
+  const [menu, setMenu] = useState<string>("chat");
   const [connectedClient, setConnectedClient] = useState<Client | null>(null);
+  const [profile, setProfile] = useState<profile>();
 
   const changeMenu = (value: string) => {
     setMenu(value);
@@ -21,9 +23,10 @@ const Home = () => {
       const response = await api.get("user/userId", {
         withCredentials: true,
       });
-
-      console.log(response);
-      setUserId(response.data.data);
+      const profileUser: profile = response.data.data;
+      console.log(profileUser);
+      setUserId(profileUser.id);
+      setProfile(profileUser);
     } catch (error) {
       console.log(error);
     }
@@ -64,9 +67,13 @@ const Home = () => {
       <div className="h-full">
         <SidebarCos menu={changeMenu} />
       </div>
-      {userId != null && connectedClient ? (
+      {profile != null && connectedClient ? (
         <div className="w-full h-full bg-white rounded-3xl ">
-          <ContentLayout idUser={userId} client={connectedClient} />
+          <ContentLayout
+            profileUser={profile}
+            client={connectedClient}
+            menu={menu}
+          />
         </div>
       ) : (
         <div className="p-4 text-white ">Loading...</div>

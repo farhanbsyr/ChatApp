@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import LeftContent from "./LeftContent";
 import RightContent from "./RightContent";
-import { userChat, userMessage } from "../../types";
+import { profile, userChat, userMessage } from "../../types";
 import { Client } from "@stomp/stompjs";
 import api from "@/api/axiosApi";
 
@@ -20,11 +20,16 @@ interface notification {
 }
 
 interface ContentLayoutProps {
-  idUser: number;
   client: Client;
+  menu: string;
+  profileUser: profile;
 }
 
-const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
+const ContentLayout: React.FC<ContentLayoutProps> = ({
+  client,
+  menu,
+  profileUser,
+}) => {
   const [convertationId, setConvertationId] = useState<number | null>(null);
   const [pinnedMessage, setPinnedMessage] = useState<userChat[]>();
   const [unPinnedMessage, setUnPinnedMessage] = useState<userChat[]>();
@@ -36,8 +41,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
   const [isGroup, setIsGroup] = useState<boolean>(false);
   const [profile, setProfile] = useState<string>("");
 
-  // const hasConnected = useRef(false);
-  // const clientRef = useRef<Client | null>(null);
   const unPinnedMessageRef = useRef<userChat[]>();
   const pinnedMessageRef = useRef<userChat[]>();
   const messagesRef = useRef<userMessage[]>();
@@ -226,7 +229,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
 
   useEffect(() => {
     const subscriptionUser = client.subscribe(
-      `/topic/${idUser}`,
+      `/topic/${profileUser.id}`,
       (response: any) => {
         const parsedResponse: any = JSON.parse(response.body);
 
@@ -270,73 +273,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
       subscriptionUser.unsubscribe();
       subscriptionCommon.unsubscribe();
     };
-  }, [client, idUser]);
-
-  // const initialiseConnections = () => {
-  //   const client = new Client({
-  //     brokerURL: "ws://localhost:8080/ws",
-  //     onConnect: () => {
-  //       console.log("Connected!");
-  // client.subscribe(`/topic/${idUser}`, (response: any) => {
-  //   const parsedResponse: any = JSON.parse(response.body);
-
-  //   // get or send message
-  //   if (parsedResponse.type === "MESSAGE") {
-  //     const messageResponse: userMessage = parsedResponse.message;
-  //     setMessages((preventMessages) => [
-  //       ...preventMessages,
-  //       messageResponse,
-  //     ]);
-
-  //     sortingMessage(messageResponse);
-  //   }
-
-  //   // seen message
-  //   if (parsedResponse.type === "SEENMESSAGE") {
-  //     if (parsedResponse.isGroup === "TEXT") {
-  //       seenMessageText(
-  //         parsedResponse.conversationId,
-  //         parsedResponse.isPinned
-  //       );
-  //     }
-
-  //     if (parsedResponse.isGroup === "GROUP") {
-  //       seenMessageGroup(
-  //         parsedResponse.groupId,
-  //         parsedResponse.isPinned,
-  //         parsedResponse.seeMessage,
-  //         parsedResponse.seenBy
-  //       );
-  //     }
-  //   }
-  // });
-
-  // client.subscribe(`/topic/common`, (response: any) => {
-  //   const parsedResponse: notification = JSON.parse(response.body);
-  //   console.log("Received : ", parsedResponse);
-  // });
-  //     },
-  //     onWebSocketError: () => {
-  //       console.log("Error with the websocket");
-  //     },
-  //     onStompError: () => {
-  //       console.log("Stomp error");
-  //     },
-  //     onDisconnect: () => {
-  //       console.log("Disconnected");
-  //     },
-  //   });
-  //   client.activate();
-
-  //   clientRef.current = client;
-  // };
-
-  // useEffect(() => {
-  //   if (!hasConnected.current) {
-  //     initialiseConnections();
-  //     hasConnected.current = true;
-  //   }
-  // }, []);
+  }, [client, profileUser]);
 
   const fetchAllFriendsData = async (idUser: number) => {
     try {
@@ -389,10 +326,10 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
   };
 
   useEffect(() => {
-    if (idUser != null) {
-      fetchAllFriendsData(idUser);
+    if (profileUser.id != null) {
+      fetchAllFriendsData(profileUser.id);
     }
-  }, [idUser]);
+  }, [profile]);
 
   useEffect(() => {
     if (convertationId != null) {
@@ -412,19 +349,19 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
       );
 
       const data = response.data.data;
-      const message: userMessage[] = data.map((idUser: userMessage) => ({
-        createdOn: idUser.createdOn,
-        senderId: idUser.senderId,
-        receiverId: idUser.receiverId,
-        id: idUser.id,
-        isDelete: idUser.isDelete,
-        isSeen: idUser.isSeen,
-        seen: idUser.seen,
-        isUnsent: idUser.isUnsent,
-        message: idUser.message,
-        isGroup: idUser.isGroup,
-        name: idUser.name ? idUser.name : "unknown",
-        image: idUser.image,
+      const message: userMessage[] = data.map((message: userMessage) => ({
+        createdOn: message.createdOn,
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+        id: message.id,
+        isDelete: message.isDelete,
+        isSeen: message.isSeen,
+        seen: message.seen,
+        isUnsent: message.isUnsent,
+        message: message.message,
+        isGroup: message.isGroup,
+        name: message.name ? message.name : "unknown",
+        image: message.image,
       }));
 
       setMessages(message);
@@ -446,7 +383,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
 
     const payload = {
       conversationId: convertationId,
-      userId: idUser,
+      userId: profileUser.id,
       messageTYPE: typeConvertation,
     };
 
@@ -469,7 +406,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
 
     const payload = {
       convertationId: convertationId,
-      senderId: idUser,
+      senderId: profileUser.id,
       receiverId: sendUser?.receiverId,
       message: message,
       isSeen: isSeen,
@@ -487,10 +424,12 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
     <div className="flex flex-row h-full gap-4 rounded-3xl">
       <div className="w-[30%] pl-5 pt-5 h-full">
         <LeftContent
+          profileUser={profileUser}
           pinnedMessage={pinnedMessage}
           unPinnedMessage={unPinnedMessage}
           onChangeConvertation={changeConvertation}
           onSeenMessage={handleSeenMessage}
+          menu={menu}
         />
       </div>
       {/* Isi chat friend or group */}
@@ -500,7 +439,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({ idUser, client }) => {
           profile={profile}
           sendMessage={handleSendMessage}
           messages={messages}
-          userId={idUser}
+          userId={profileUser.id}
           name={name}
           member={member}
           isGroup={isGroup}

@@ -18,7 +18,6 @@ import {
 } from "./ui/alert-dialog";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { string } from "zod";
 
 interface SidebarCosProps {
   menu: any;
@@ -82,6 +81,7 @@ const SidebarCos: React.FC<SidebarCosProps> = ({ menu }) => {
           const Icon = item.icon;
           return (
             <div
+              onClick={() => onChangeMenu(item.name)}
               key={index}
               className=" group flex flex-col text-[#9E9C9D]  text-[10px] p-2 leading-4 justify-center items-center  hover:bg-white hover:bg-opacity-35 hover:rounded-xl h-[61px] w-[61px]"
             >

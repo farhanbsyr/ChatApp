@@ -43,3 +43,16 @@ export interface userMessage {
   createdOn: string;
   image?: any;
 }
+
+export interface sendUser {
+  convertationId: number;
+  receiverId: number;
+}
+
+export interface profile {
+  id: number;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  profileImage?: string;
+}
