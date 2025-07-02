@@ -25,7 +25,6 @@ import com.portofolio.talkify.repository.UserGroupsRepository;
 import com.portofolio.talkify.repository.UserMessageRepository;
 import com.portofolio.talkify.repository.UserRepository;
 import com.portofolio.talkify.service.ChatService;
-
 import jakarta.transaction.Transactional;
 
 @Controller

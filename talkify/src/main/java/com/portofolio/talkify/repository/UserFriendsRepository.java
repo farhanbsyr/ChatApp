@@ -28,5 +28,11 @@ WHERE uf.user_id = ?1;
                     select * from user_friends uf where user_id = ?1 and user_friend_id = ?2 and is_delete = false ;
                     """, nativeQuery = true)
         UserFriends findUserFriendByIdFriends(Long userId, Long friendId);
+
+        // Untuk mencari friend request dari user
+        @Query(value = """
+                        select * from user_friends uf  where user_friend_id = ?1;
+                        """, nativeQuery = true)
+        List<UserFriends> findFriendRequest(Long userId);
     
 }

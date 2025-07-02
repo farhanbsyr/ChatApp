@@ -29,11 +29,13 @@ import com.portofolio.talkify.repository.UserGroupsRepository;
 import com.portofolio.talkify.repository.UserMessageRepository;
 import com.portofolio.talkify.repository.UserRepository;
 import com.portofolio.talkify.service.JWTService;
+import com.portofolio.talkify.service.UserService;
 import com.portofolio.talkify.utility.ApiResponse;
 import com.portofolio.talkify.utility.ResponseUtil;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 
 @RestController
 @CrossOrigin("*")
@@ -57,6 +59,9 @@ public class ApiUserController {
 
     @Autowired
     private JWTService jwtService;
+
+    @Autowired
+    private UserService userService;
 
 
     // profile user
@@ -89,11 +94,13 @@ public class ApiUserController {
         }
     }
 
+    @Transactional
     @GetMapping("userId")
     public ResponseEntity<ApiResponse<Object>> getUserId(HttpServletRequest request){
         try {
             String token = null;
             Long userId = null;
+            Object response = null;
 
             Cookie[] cookies = request.getCookies();
 
@@ -104,11 +111,20 @@ public class ApiUserController {
                     }
                 }
             }
-            if (token != null) {
-                userId = jwtService.extractUserId(token);
+
+            if (token == null) {
+                return ResponseUtil.generateErrorResponse("Token is not found", null, HttpStatus.NOT_FOUND);
             }
 
-            return ResponseUtil.generateSuccessResponse("Success to get userId", userId);
+            userId = jwtService.extractUserId(token);
+
+            if (userId == null) {
+                return ResponseUtil.generateErrorResponse("UserId is not found", cookies, HttpStatus.NOT_FOUND);
+            }
+
+            response = userService.getProfile(userId);
+
+            return ResponseUtil.generateSuccessResponse("Success to get userId", response);
         } catch (Exception e) {
             return ResponseUtil.generateErrorResponse("Failed to get user id", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

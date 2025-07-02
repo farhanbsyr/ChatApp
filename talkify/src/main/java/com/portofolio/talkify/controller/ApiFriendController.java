@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,4 +51,25 @@ public class ApiFriendController {
             return ResponseUtil.generateErrorResponse("Failed to add friend", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Transactional
+    @GetMapping("/getFriendRequest")
+    public ResponseEntity<ApiResponse<Object>> getFriendRequest(HttpServletRequest request) {
+        try {
+            return friendService.listFriendRequest(request);
+        } catch (Exception e) {
+            return ResponseUtil.generateErrorResponse("Error ", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Transactional
+    @GetMapping("/getFriend")
+    public ResponseEntity<ApiResponse<Object>> getFriends(HttpServletRequest request){
+        try {
+            return friendService.listFriends(request);
+        } catch (Exception e) {
+            return ResponseUtil.generateErrorResponse("Failed to getFriend", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
