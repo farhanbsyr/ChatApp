@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,14 +16,20 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.portofolio.talkify.Notification.MessageTYPE;
 import com.portofolio.talkify.Notification.NotificationUser;
+import com.portofolio.talkify.modal.ChatConvertation;
 import com.portofolio.talkify.modal.Group;
 import com.portofolio.talkify.modal.User;
 import com.portofolio.talkify.modal.UserConvertation;
 import com.portofolio.talkify.modal.UserGroups;
+import com.portofolio.talkify.repository.ChatConvertationRepository;
 import com.portofolio.talkify.repository.GroupRepository;
 import com.portofolio.talkify.repository.UserConvertaionRepository;
 import com.portofolio.talkify.repository.UserGroupsRepository;
@@ -53,6 +60,15 @@ public class ApiChatController {
     @Autowired 
     private GroupRepository groupRepository;
 
+    @Autowired
+    private Cloudinary cloudinary;
+
+    @Autowired 
+    private ChatConvertationRepository chatConvertationRepository;
+
+    @Autowired
+    private WebSocketController webSocketController;
+
     @Transactional
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Object>> getChatUser(@PathVariable("id") Long userId){
@@ -78,15 +94,16 @@ public class ApiChatController {
                     unPinnedResponse.add(unPinnedGroupChat);
                 }
             }
-            
+
             for (UserConvertation userConvertation : userConvertations) {
-                if (userConvertation.getIsPINNED()) {
-                    Map<String, Object> userChatProfile = chatService.getUserChat(userId, userConvertation);
+                ChatConvertation chatConvertation =  chatConvertationRepository.findByUserConvertationIdAndUserId(userConvertation.getId(), userId);
+                
+                if (chatConvertation.getIsPINNED()) {
+                    Map<String, Object> userChatProfile = chatService.getUserChat(userId, userConvertation, chatConvertation.getIsPINNED());
                     pinnedResponse.add(userChatProfile);
                 } else{
-                    Map<String, Object> unPinnedProfie = chatService.getUserChat(userId, userConvertation);
-                    unPinnedResponse.add(unPinnedProfie);
-                    
+                    Map<String, Object> unPinnedProfie = chatService.getUserChat(userId, userConvertation, chatConvertation.getIsPINNED());
+                    unPinnedResponse.add(unPinnedProfie); 
                 }
             }
 
@@ -117,17 +134,19 @@ public class ApiChatController {
             } 
 
             Group group = groupRepository.findById(convertationId).orElse(null);
-            
+            System.out.println("step1");
             if (group == null) {
                 return ResponseUtil.generateErrorResponse("Group is not found", group, HttpStatus.NOT_FOUND);
             }
 
+            System.out.println("disini ka?");
             ArrayList<Object> groupMessages = chatService.getGRPMessages(convertationId);
 
+            System.out.println("step2");
             if (groupMessages.size() == 0) {
                 return ResponseUtil.generateSuccessResponse("Group message is not exist", groupMessages);
             }
-
+            System.out.println("step3");
             return ResponseUtil.generateSuccessResponse("Success to get messages", groupMessages);  
             
         } catch (Exception e) {
@@ -170,8 +189,25 @@ public class ApiChatController {
     }
 
 
-    @GetMapping("/coba")
-    public String greet(){
-        return "test spring security";
+    @PostMapping("/sendImage")
+    public String sendImage(@RequestParam("file") MultipartFile file,  @RequestPart("notification") NotificationUser notificationUser){
+        try {
+            String uniqueName = UUID.randomUUID() +"_" + file.getOriginalFilename();
+        
+            Map uploadResult = cloudinary.uploader().upload(
+                file.getBytes(), 
+                ObjectUtils.asMap(
+                    "public_id", "talkify/" + uniqueName
+                )
+            );
+
+            String url = (String) uploadResult.get("secure_url");
+            
+            notificationUser.setMessage(url);
+            webSocketController.testSocket(notificationUser);
+            return "sukses";
+        } catch (Exception e) {
+          return e.getMessage();
+        }
     }
 }

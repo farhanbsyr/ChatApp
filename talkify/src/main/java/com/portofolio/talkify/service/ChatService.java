@@ -54,7 +54,7 @@ public class ChatService {
     private UserGroupsRepository userGroupsRepository;
    
     
-    public Map<String, Object> getUserChat (Long userId, UserConvertation userConvertation){
+    public Map<String, Object> getUserChat (Long userId, UserConvertation userConvertation, Boolean isPinned){
         Map<String, Object> userChatProfile = new HashMap<>();
         Map<String, Object> profileImageResponse = new HashMap<>();
         Map<String, Object> lastMessageResponse = new HashMap<>();
@@ -65,7 +65,6 @@ public class ChatService {
 
         User profileUser = this.userRepository.findById(userChat).orElse(null);    
         UserFriends userFriends = this.userFriendsRepository.findUserFriendByIdFriends(userId, userChat);
-
         if (profileUser == null) {
             return null; // Jika profileUser tidak ditemukan, kembalikan null
         }
@@ -110,7 +109,7 @@ public class ChatService {
         userChatProfile.put("name", profileUser.getName());
         userChatProfile.put("email", profileUser.getEmail());
         userChatProfile.put("handphoneNumber", profileUser.getHandphoneNumber());
-        userChatProfile.put("pinned", userConvertation.getIsPINNED());
+        userChatProfile.put("pinned", isPinned);
         userChatProfile.put("isGroup", false);
         return userChatProfile;
     }
@@ -208,6 +207,7 @@ public class ChatService {
         userMessage.setCreatedBy(notificationUser.getSenderId());
         userMessage.setCreatedOn(new Date());
         userMessage.setIsDelete(false);
+        userMessage.setIsImage(notificationUser.getIsImage());
 
         UserMessage savedUserMessage = userMessageRepository.save(userMessage);
 
@@ -225,6 +225,8 @@ public class ChatService {
         groupMessage.setIsUnsend(notificationUser.getIsUnsend());
         groupMessage.setCreatedOn(new Date());
         groupMessage.setCreatedBy(notificationUser.getSenderId());
+        groupMessage.setIsImage(notificationUser.getIsImage());
+        groupMessage.setIsImage(notificationUser.getIsImage());
 
         User user = userRepository.findById(groupMessage.getSenderMessage()).orElse(null);
 
@@ -278,6 +280,7 @@ public class ChatService {
         response.put("isUnsent", userMessage.getIsUnsend());
         response.put("isDelete", deleteMessage(userMessage.getIdUserConvertation(), userMessage.getSender(), userMessage.getId()));
         response.put("isGroup", false);
+        response.put("isImage", userMessage.getIsImage());
 
         return response;
     }
@@ -294,6 +297,7 @@ public class ChatService {
         message.put("receiverId", groupMessage.getGroupId());
         message.put("isDelete", deleteMessage(groupMessage.getGroupId(), groupMessage.getSenderMessage(), groupMessage.getId()));
         message.put("seen", isSeenMessageGroup(groupMessage.getGroupId(), groupMessage.getCreatedOn()));
+        message.put("isImage", groupMessage.getIsImage());
          
         if (user.getIdProfileImage() != null) {
             message.put("image", user.getProfileImage());
@@ -330,7 +334,8 @@ public class ChatService {
                 responseList.add(response);
             }
         }
-        return responseList;
-        
+        return responseList; 
     }
+
+    
 }

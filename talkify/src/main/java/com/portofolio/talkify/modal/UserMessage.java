@@ -28,6 +28,7 @@ public class UserMessage extends BaseProperties {
     private String message;
     private Boolean isSeen;
     private Boolean isUnsend;
+    private Boolean isImage;
 
     @ManyToOne
     @JoinColumn(name = "idUserConvertation", insertable = false, updatable = false)
@@ -112,6 +113,14 @@ public class UserMessage extends BaseProperties {
 
     public void setIsUnsend(Boolean isUnsend) {
         this.isUnsend = isUnsend;
+    }
+
+    public Boolean getIsImage() {
+        return isImage;
+    }
+
+    public void setIsImage(Boolean isImage) {
+        this.isImage = isImage;
     }
 
     

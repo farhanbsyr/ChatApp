@@ -15,7 +15,6 @@ public class UserConvertation extends BaseProperties {
     private Long id;
     private Long userSatuId;
     private Long userDuaId;
-    private Boolean isPINNED;
     
     public Long getId() {
         return id;
@@ -34,12 +33,6 @@ public class UserConvertation extends BaseProperties {
     }
     public void setUserDuaId(Long userDuaId) {
         this.userDuaId = userDuaId;
-    }
-    public Boolean getIsPINNED() {
-        return isPINNED;
-    }
-    public void setIsPINNED(Boolean isPINNED) {
-        this.isPINNED = isPINNED;
     }
 
     

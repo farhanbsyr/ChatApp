@@ -14,11 +14,13 @@ import com.portofolio.talkify.Notification.MessageTYPE;
 import com.portofolio.talkify.Notification.NotificationSeen;
 import com.portofolio.talkify.Notification.NotificationTYPE;
 import com.portofolio.talkify.Notification.NotificationUser;
+import com.portofolio.talkify.modal.ChatConvertation;
 import com.portofolio.talkify.modal.Group;
 import com.portofolio.talkify.modal.User;
 import com.portofolio.talkify.modal.UserConvertation;
 import com.portofolio.talkify.modal.UserGroups;
 import com.portofolio.talkify.modal.UserMessage;
+import com.portofolio.talkify.repository.ChatConvertationRepository;
 import com.portofolio.talkify.repository.GroupRepository;
 import com.portofolio.talkify.repository.UserConvertaionRepository;
 import com.portofolio.talkify.repository.UserGroupsRepository;
@@ -51,6 +53,15 @@ public class WebSocketController {
     @Autowired 
     private UserMessageRepository userMessageRepository;
 
+    @Autowired
+    private ChatConvertationRepository chatConvertationRepository;
+
+    @Transactional
+    @MessageMapping("/sentImage")
+    public void sentImage(NotificationUser notificationUser){
+        
+    }
+
     @Transactional
     @MessageMapping("/sendMessage")
     public void testSocket(NotificationUser notificationUser){ 
@@ -58,7 +69,8 @@ public class WebSocketController {
         
         if (notificationUser.getMessageTYPE() == MessageTYPE.TEXT) {
             UserConvertation userConvertation = userConvertaionRepository.findById(notificationUser.getConvertationId()).orElse(null);
-
+            List<ChatConvertation> chatConvertations = chatConvertationRepository.findByUserConvertationId(userConvertation.getId());
+            
             User user = userRepository.findById(notificationUser.getReceiverId()).orElse(null);
             if (user == null ) {
                 response.put("type", NotificationTYPE.FAILED);
@@ -67,13 +79,14 @@ public class WebSocketController {
             } else{
                 response.put("message", chatService.saveMessageText(notificationUser));
                 response.put("type", NotificationTYPE.MESSAGE);
-                response.put("isPinned", userConvertation.getIsPINNED());
-                simpMessagingTemplate.convertAndSend("/topic/" + notificationUser.getReceiverId() , response);
-                simpMessagingTemplate.convertAndSend("/topic/" + notificationUser.getSenderId() , response);
+                for (ChatConvertation chatConvertation : chatConvertations) {
+                    response.put("isPinned", chatConvertation.getIsPINNED());
+                    simpMessagingTemplate.convertAndSend("/topic/" + chatConvertation.getUserId() , response);
+                }
             }
         } else {
             Group group = groupRepository.findById(notificationUser.getConvertationId()).orElse(null);
-            UserConvertation userConvertation = userConvertaionRepository.findById(notificationUser.getConvertationId()).orElse(null);
+            // UserConvertation userConvertation = userConvertaionRepository.findById(notificationUser.getConvertationId()).orElse(null);
             if (group == null) {
                 response.put("type", NotificationTYPE.FAILED);
                 response.put("message", "Group is not found");
@@ -82,8 +95,8 @@ public class WebSocketController {
                 List<UserGroups> userGroups = userGroupsRepository.listUserGroupByIdGroup(notificationUser.getConvertationId());
                 response.put("message", chatService.saveMessageGroup(notificationUser));
                 response.put("type", NotificationTYPE.MESSAGE);
-                response.put("isPinned", userConvertation.getIsPINNED());
                 for (UserGroups userGroup : userGroups) {
+                    response.put("isPinned", userGroup.getIsPINNED());
                     simpMessagingTemplate.convertAndSend("/topic/" + userGroup.getUserId() , response);
                 }
             } 
@@ -99,13 +112,15 @@ public class WebSocketController {
         if (notificationSeen.getMessageTYPE() == MessageTYPE.TEXT) {
             List<UserMessage> listMessageFalse = userMessageRepository.listFalseMessage(notificationSeen.getConversationId(), notificationSeen.getUserId());
             UserConvertation userConvertation = userConvertaionRepository.findById(notificationSeen.getConversationId()).orElse(null);
-
+            
             if (userConvertation == null) {
                 response.put("type", NotificationTYPE.FAILED);
                 response.put("error: ", "Message is not found");
                 simpMessagingTemplate.convertAndSend("/topic/" + notificationSeen.getUserId() , response);
                 return;
             }
+
+            List<ChatConvertation> chatConvertations = chatConvertationRepository.findByUserConvertationId(userConvertation.getId());
 
             for (UserMessage userMessage : listMessageFalse) {
                 // Map<String, Object> responObj = new HashMap<>();
@@ -119,22 +134,19 @@ public class WebSocketController {
             }
 
             response.put("conversationId", userConvertation.getId());
-            response.put("isPinned", userConvertation.getIsPINNED());
             response.put("type", NotificationTYPE.SEENMESSAGE);
             response.put("isGroup", MessageTYPE.TEXT);
-    
-            simpMessagingTemplate.convertAndSend("/topic/" + userConvertation.getUserSatuId() , response);
-            simpMessagingTemplate.convertAndSend("/topic/" + userConvertation.getUserDuaId() , response);
-            return;
+            
+            for (ChatConvertation chatConvertation : chatConvertations) {
+                response.put("isPinned", chatConvertation.getIsPINNED());
+                simpMessagingTemplate.convertAndSend("/topic/" + chatConvertation.getUserId() , response);
+                return;
+            }
         }
-        System.out.println("sampesini gasih koca");
         if (notificationSeen.getMessageTYPE() == MessageTYPE.GROUP) {
-            System.out.println("benergasih nih");
             UserGroups userGroups = userGroupsRepository.findByGroupIdAndUserId(notificationSeen.getConversationId(), notificationSeen.getUserId());
             // List<GroupMessage> listGroupMessages = groupMessageRepository.listFalseGroupMessages(notificationSeen.getConversationId(), notificationSeen.getUserId(), userGroups.getSeeMessage());
-            System.out.println("kocag bgt new bap");
             List<UserGroups> listUserGroups = userGroupsRepository.listGroupsByGroupId(userGroups.getGroupId());
-            System.out.println("kocag bgt new");
             Group group = groupRepository.findById(notificationSeen.getConversationId()).orElse(null);
 
             if (group == null) {
@@ -165,12 +177,13 @@ public class WebSocketController {
             response.put("type", NotificationTYPE.SEENMESSAGE);
             response.put("isGroup", MessageTYPE.GROUP);
            
-            for (UserGroups userGroup : listUserGroups) { 
-                System.out.println(userGroup.getUserId());      
+            for (UserGroups userGroup : listUserGroups) {    
                 simpMessagingTemplate.convertAndSend("/topic/" + userGroup.getUserId(), response);
             }
         }
     }
+
+
 }
 
 // seen pada userMessage adalah object yang berisikan messageId dan true/false isSeen

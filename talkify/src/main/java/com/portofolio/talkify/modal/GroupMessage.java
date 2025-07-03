@@ -19,6 +19,7 @@ public class GroupMessage extends BaseProperties {
     private Long senderMessage;
     private String message;
     private Boolean isUnsend;
+    private Boolean isImage;
 
     @ManyToOne
     @JoinColumn(name = "groupId", insertable = false, updatable = false)
@@ -70,6 +71,14 @@ public class GroupMessage extends BaseProperties {
 
     public void setIsUnsend(Boolean isUnsend) {
         this.isUnsend = isUnsend;
+    }
+
+    public Boolean getIsImage() {
+        return isImage;
+    }
+
+    public void setIsImage(Boolean isImage) {
+        this.isImage = isImage;
     }
 
     // public User getSender() {

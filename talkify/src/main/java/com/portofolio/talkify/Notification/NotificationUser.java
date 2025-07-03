@@ -20,4 +20,5 @@ public class NotificationUser {
     private Boolean isSeen;
     private Boolean isUnsend;
     private MessageTYPE messageTYPE;
+    private Boolean isImage;
 }
