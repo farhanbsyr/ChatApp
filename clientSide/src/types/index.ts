@@ -42,6 +42,7 @@ export interface userMessage {
   isGroup: boolean;
   createdOn: string;
   image?: any;
+  isImage: boolean;
 }
 
 export interface sendUser {

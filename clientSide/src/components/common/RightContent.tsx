@@ -1,8 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Chat from "../Chat/Chat";
 import InputMsg from "../Chat/InputMsg";
 import ProfileBox from "../Chat/ProfileBox";
 import { ScrollArea } from "../ui/scroll-area";
+import { Plus } from "lucide-react";
+import InputImg from "../Chat/InputImg";
+import { userMessage } from "@/types";
 
 interface RightContentProps {
   userId: number;
@@ -14,21 +17,6 @@ interface RightContentProps {
   profile: string;
 }
 
-interface userMessage {
-  id: number;
-  receiverId?: number;
-  senderId: number;
-  isDelete: boolean;
-  isUnsent: boolean;
-  isSeen?: boolean;
-  seen?: object[];
-  message: string;
-  name?: string;
-  isGroup: boolean;
-  createdOn: string;
-  image?: any;
-}
-
 const RightContent: React.FC<RightContentProps> = ({
   userId,
   sendMessage,
@@ -38,10 +26,10 @@ const RightContent: React.FC<RightContentProps> = ({
   isGroup,
   profile,
 }) => {
+  const [isSentImage, setIsSentImage] = useState<boolean>(false);
   useEffect(() => {
     console.log(messages);
   }, [messages]);
-
   return (
     <div className="flex flex-col w-full h-full pr-4">
       {isGroup ? (
@@ -79,6 +67,7 @@ const RightContent: React.FC<RightContentProps> = ({
               className={`flex ${positionMsg} `}
             >
               <Chat
+                isImage={value.isImage}
                 name={value.name}
                 time={formattedTime}
                 message={value.message}
@@ -93,7 +82,34 @@ const RightContent: React.FC<RightContentProps> = ({
         })}
       </ScrollArea>
       {/* <Chat /> */}
-      <InputMsg sendMessage={sendMessage} />
+      <div
+        className={`flex flex-row items-center justify-between w-full text-sm text-gray-900 border border-gray-300 rounded-lg focus:border-black bg-gray-50 focus:ring-blue-500 ${
+          isSentImage ? "" : "ps-5 pe-5"
+        } dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+      >
+        {isSentImage ? (
+          ""
+        ) : (
+          <button
+            onClick={() => setIsSentImage(true)}
+            className="p-1 transition duration-500 ease-in-out bg-gray-400 rounded-sm hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95"
+          >
+            <Plus className="w-3 h-3 text-white" />
+          </button>
+        )}
+        {isSentImage ? (
+          <InputImg
+            sendMessage={sendMessage}
+            onSendImage={(file) => {
+              // panggil API-mu untuk upload image
+              console.log("Selected file:", file);
+            }}
+            onCancel={() => setIsSentImage(false)}
+          />
+        ) : (
+          <InputMsg sendMessage={sendMessage} />
+        )}
+      </div>
       {/* <ContactProfile /> */}
     </div>
   );

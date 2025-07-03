@@ -154,6 +154,10 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     setMessages(newMessages);
   };
 
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
+
   const seenMessageGroup = (
     groupId: number,
     isPinned: boolean,
@@ -225,6 +229,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     if (messages) {
       messagesRef.current = messages;
     }
+    console.log(messages);
   }, [messages]);
 
   useEffect(() => {
@@ -235,6 +240,8 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
         if (parsedResponse.type === "MESSAGE") {
           const messageResponse: userMessage = parsedResponse.message;
+          console.log(messageResponse);
+
           setMessages((prev) => [...prev, messageResponse]);
 
           sortingMessage(messageResponse);
@@ -362,6 +369,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
         isGroup: message.isGroup,
         name: message.name ? message.name : "unknown",
         image: message.image,
+        isImage: message.isImage,
       }));
 
       setMessages(message);
@@ -393,10 +401,35 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     });
   };
 
+  const sendImage = async (file: File, notification: object) => {
+    try {
+      console.log(notification);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append(
+        "notification",
+        new Blob([JSON.stringify(notification)], {
+          type: "application/json",
+        })
+      );
+
+      const response = await api.post("/chat/sendImage", formData, {
+        withCredentials: true,
+      });
+
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleSendMessage = (
     message: string,
     isSeen: boolean,
-    isUnsend: boolean
+    isUnsend: boolean,
+    isImage: boolean,
+    file?: File
   ) => {
     // const client = clientRef.current;
     if (!client) {
@@ -412,12 +445,19 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
       isSeen: isSeen,
       isUnsend: isUnsend,
       messageTYPE: typeConvertation,
+      isImage: isImage,
     };
 
-    client.publish({
-      destination: "/app/sendMessage",
-      body: JSON.stringify(payload),
-    });
+    if (!isImage) {
+      client.publish({
+        destination: "/app/sendMessage",
+        body: JSON.stringify(payload),
+      });
+    }
+
+    if (isImage && file) {
+      sendImage(file, payload);
+    }
   };
 
   return (

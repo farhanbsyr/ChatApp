@@ -40,7 +40,11 @@ const UserChat: React.FC<UserChatProps> = ({
 
           {/* text timbul */}
           <div className="text-sm text-gray-400">
-            {lastMessage != null ? lastMessage.message : ""}
+            {lastMessage != null
+              ? lastMessage.message.length > 50
+                ? lastMessage.message.substring(0, 30) + "..."
+                : lastMessage.message
+              : ""}
           </div>
         </div>
       </div>
@@ -50,7 +54,7 @@ const UserChat: React.FC<UserChatProps> = ({
         {/* upper notif */}
         <div className="mb-1 text-[10px] leading-5 text-gray-400 ">{time}</div>
         {/* bottom notif */}
-        <div className="flex flex-row gap-1">
+        <div className="flex flex-row justify-end gap-1">
           {/* notif belum dibaca */}
           {unSeenMessage > 0 ? (
             <div className="w-5 h-5 text-[12px] bg-red-500 rounded-full flex justify-center items-center font-semibold">

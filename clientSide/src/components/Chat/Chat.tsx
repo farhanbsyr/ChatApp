@@ -10,6 +10,7 @@ interface ChatProps {
   profile: any;
   member: number | null;
   seen?: object[];
+  isImage: boolean;
 }
 
 const Chat: React.FC<ChatProps> = ({
@@ -21,6 +22,7 @@ const Chat: React.FC<ChatProps> = ({
   profile,
   member,
   seen,
+  isImage,
 }) => {
   let checkedColor: string = "gray";
   let image: any;
@@ -55,7 +57,11 @@ const Chat: React.FC<ChatProps> = ({
           <></>
         )}
 
-        <div className="flex flex-col w-full leading-1.5 p-2.5 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+        <div
+          className={`flex flex-col w-full leading-1.5 p-2.5 ${
+            isImage ? "" : "border-gray-200 bg-gray-100"
+          } rounded-e-xl rounded-es-xl dark:bg-gray-700`}
+        >
           {showedGrup ? (
             <div className="flex space-x-2 rtl:space-x-reverse">
               <span className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -65,10 +71,22 @@ const Chat: React.FC<ChatProps> = ({
           ) : (
             <></>
           )}
-          <div className="flex flex-row items-end justify-between gap-2">
-            <p className="text-sm font-normal text-gray-900 dark:text-white">
-              {message}
-            </p>
+          <div
+            className={`flex ${
+              isImage ? "flex-col" : "flex-row"
+            } items-end justify-between gap-2`}
+          >
+            {isImage ? (
+              <img
+                src={message}
+                alt="image"
+                className="object-cover border rounded h-[350px] w-[350px]"
+              />
+            ) : (
+              <p className="text-sm font-normal text-gray-900 dark:text-white">
+                {message}
+              </p>
+            )}
             <div className="flex items-center gap-1">
               <span className="text-sm font-normal text-gray-500">{time}</span>
               <span
