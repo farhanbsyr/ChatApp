@@ -6,6 +6,9 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Plus } from "lucide-react";
 import InputImg from "../Chat/InputImg";
 import { userMessage } from "@/types";
+import EmojiPicker from "emoji-picker-react";
+import { VscSmiley } from "react-icons/vsc";
+import { IoIosSend } from "react-icons/io";
 
 interface RightContentProps {
   userId: number;
@@ -27,6 +30,21 @@ const RightContent: React.FC<RightContentProps> = ({
   profile,
 }) => {
   const [isSentImage, setIsSentImage] = useState<boolean>(false);
+  const [showEmoji, setShowEmoji] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>("");
+
+  const sendMsg = async (
+    isSeen: boolean,
+    isUnsend: boolean,
+    message: string,
+    isImage: boolean
+  ) => {
+    if (message.trim() === "") return;
+    sendMessage(message, isSeen, isUnsend, isImage);
+    setMessage("");
+    setShowEmoji(false);
+  };
+
   useEffect(() => {
     console.log(messages);
   }, [messages]);
@@ -85,17 +103,43 @@ const RightContent: React.FC<RightContentProps> = ({
       <div
         className={`flex flex-row items-center justify-between w-full text-sm text-gray-900 border border-gray-300 rounded-lg focus:border-black bg-gray-50 focus:ring-blue-500 ${
           isSentImage ? "" : "ps-5 pe-5"
-        } dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+        } dark:bg-gray-700 relative dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
       >
+        {showEmoji ? (
+          <div className="absolute left-0 right-0 z-50 w-full m-0 mb-2 bottom-full">
+            <EmojiPicker
+              width="100%"
+              height={250}
+              onEmojiClick={(emojiData) => {
+                console.log(emojiData.emoji);
+                setMessage((prev) => prev + emojiData.emoji);
+              }}
+            />
+          </div>
+        ) : (
+          <></>
+        )}
+
         {isSentImage ? (
           ""
         ) : (
-          <button
-            onClick={() => setIsSentImage(true)}
-            className="p-1 transition duration-500 ease-in-out bg-gray-400 rounded-sm hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95"
-          >
-            <Plus className="w-3 h-3 text-white" />
-          </button>
+          <>
+            <button
+              onClick={() => {
+                setIsSentImage(true);
+                setShowEmoji(false);
+              }}
+              className="p-1 transition duration-500 ease-in-out bg-gray-400 rounded-sm hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95"
+            >
+              <Plus className="w-3 h-3 text-white" />
+            </button>
+            <button onClick={() => setShowEmoji(!showEmoji)} className="ml-2">
+              <VscSmiley
+                size={24}
+                className="text-gray-400 transition duration-500 ease-in-out hover:text-gray-800 hover:scale-105 hover:shadow-lg active:scale-95"
+              />
+            </button>
+          </>
         )}
         {isSentImage ? (
           <InputImg
@@ -107,10 +151,19 @@ const RightContent: React.FC<RightContentProps> = ({
             onCancel={() => setIsSentImage(false)}
           />
         ) : (
-          <InputMsg sendMessage={sendMessage} />
+          <InputMsg message={message} setMessage={setMessage} />
         )}
+        <div
+          onClick={() => {
+            sendMsg(false, false, message, false);
+          }}
+        >
+          <IoIosSend
+            size={18}
+            className="text-gray-500 transition duration-500 ease-in-out rounded-sm cursor-pointer hover:text-gray-800 hover:scale-105 hover:shadow-lg active:scale-95"
+          />
+        </div>
       </div>
-      {/* <ContactProfile /> */}
     </div>
   );
 };
