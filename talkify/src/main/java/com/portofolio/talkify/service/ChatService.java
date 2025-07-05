@@ -302,7 +302,7 @@ public class ChatService {
         message.put("isImage", groupMessage.getIsImage());
          
         if (user.getIdProfileImage() != null) {
-            message.put("image", user.getProfileImage());
+            message.put("image", user.getProfileImage().getImage());
         } 
 
         if (user.getIdProfileImage() == null) {
