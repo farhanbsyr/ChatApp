@@ -16,13 +16,7 @@ import InputTel from "../input/InputTel";
 import api from "@/api/axiosApi";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { toast } from "sonner";
-
-interface typeFriend {
-  name: string;
-  identity: string;
-  profile: string;
-  isFriend: boolean;
-}
+import { typeFriend } from "@/types";
 
 const AddFriends = () => {
   const [email, setEmail] = useState<string>("");

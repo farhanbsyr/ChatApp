@@ -1,4 +1,4 @@
-import { profile, userChat } from "../../types";
+import { userProfile, userChat, group } from "../../types";
 import ChatContent from "../Chat/ChatContent";
 import ContactContent from "../Contact/ContactContent";
 
@@ -8,17 +8,28 @@ interface LeftContentProps {
   unPinnedMessage?: userChat[];
   onSeenMessage: any;
   menu: string;
-  profileUser: profile;
+  profileUser: userProfile;
+  contactNotif: any;
+  friendRequest: userProfile[];
+  friend: userProfile[];
+  group: group[];
 }
 
 const LeftContent: React.FC<LeftContentProps> = ({
   unPinnedMessage,
+  contactNotif,
   pinnedMessage,
   onChangeConvertation,
   onSeenMessage,
   profileUser,
+  friend,
+  friendRequest,
+  group,
   menu,
 }) => {
+  console.log(friend);
+  console.log(friendRequest);
+  console.log(group);
   return (
     <>
       <div className="relative flex flex-col h-full">
@@ -30,7 +41,13 @@ const LeftContent: React.FC<LeftContentProps> = ({
             onChangeConvertation={onChangeConvertation}
           />
         ) : (
-          <ContactContent profileUser={profileUser} />
+          <ContactContent
+            friendRequest={friendRequest}
+            friend={friend}
+            group={group}
+            profileUser={profileUser}
+            contactNotif={contactNotif}
+          />
         )}
       </div>
     </>

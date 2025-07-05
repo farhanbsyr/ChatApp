@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from "react";
 import Search from "../Search/Search";
 import ProfileCard from "./ProfileCard";
-import { profile } from "@/types";
+import { userProfile } from "@/types";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
-import api from "@/api/axiosApi";
 import { ScrollArea } from "../ui/scroll-area";
 
 interface ContactContentProps {
-  profileUser: profile;
-}
-
-interface userProfile {
-  id: number;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  profileImage: string;
+  profileUser: userProfile;
+  contactNotif: any;
+  friendRequest: userProfile[];
+  friend: userProfile[];
+  group: group[];
 }
 
 interface group {
@@ -26,11 +21,13 @@ interface group {
   member: number;
 }
 
-const ContactContent: React.FC<ContactContentProps> = ({ profileUser }) => {
+const ContactContent: React.FC<ContactContentProps> = ({
+  profileUser,
+  friend,
+  friendRequest,
+  group,
+}) => {
   const [search, setSearch] = useState<string>("");
-  const [friendRequest, setFriendRequest] = useState<userProfile[]>([]);
-  const [friend, setFriend] = useState<userProfile[]>([]);
-  const [group, setGroup] = useState<group[]>([]);
   const [friendRequestDropdown, setFriendRequestDropdown] =
     useState<boolean>(false);
   const [friendDropdown, setFriendDropdown] = useState<boolean>(true);
@@ -43,48 +40,10 @@ const ContactContent: React.FC<ContactContentProps> = ({ profileUser }) => {
     }
   }, [search]);
 
-  const getFriendRequest = async () => {
-    try {
-      const response = await api.get("/friend/getFriendRequest", {
-        withCredentials: true,
-      });
-
-      setFriendRequest(response.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const getFriend = async () => {
-    try {
-      const response = await api.get("/friend/getFriend", {
-        withCredentials: true,
-      });
-
-      setFriend(response.data.data);
-      console.log(response.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const getUserGroup = async () => {
-    try {
-      const response = await api.get("/group/userGroup", {
-        withCredentials: true,
-      });
-
-      setGroup(response.data.data);
-      console.log(response);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
-    getFriendRequest();
-    getFriend();
-    getUserGroup();
+    if (friendRequest.length > 0) {
+      setFriendRequestDropdown(true);
+    }
   }, []);
 
   const filteredGroup: group[] =
@@ -94,20 +53,17 @@ const ContactContent: React.FC<ContactContentProps> = ({ profileUser }) => {
           return userGroup.name.toLowerCase().includes(search.toLowerCase());
         });
 
-  const filteredFriend: profile[] =
+  useEffect(() => {
+    console.log(friend);
+    console.log(friendRequest);
+  }, [friend, friendRequest]);
+
+  const filteredFriend: userProfile[] =
     search.trim() === ""
       ? friend
-      : friend?.filter((userFriend: profile) => {
+      : friend?.filter((userFriend: userProfile) => {
           return userFriend.name.toLowerCase().includes(search.toLowerCase());
         });
-
-  // const filteredMsg: userChat[] =
-  //   keyword.trim() === ""
-  //     ? chatMessage
-  //     : chatMessage.filter((message: userChat) => {
-  //         return message.name.toLowerCase().includes(keyword.toLowerCase());
-  //       });
-
   return (
     <>
       <Search changeKeyword={setSearch} />
@@ -153,6 +109,7 @@ const ContactContent: React.FC<ContactContentProps> = ({ profileUser }) => {
               {friendRequest?.map((friendRequest) => {
                 return (
                   <ProfileCard
+                    email={friendRequest.email}
                     isFriendRequest={true}
                     name={friendRequest.name}
                     status="Available"

@@ -1,6 +1,7 @@
 import React from "react";
 import { VscPinned } from "react-icons/vsc";
 import { LastMessage } from "../../types";
+import { Image } from "lucide-react";
 
 interface UserChatProps {
   name: string;
@@ -19,6 +20,8 @@ const UserChat: React.FC<UserChatProps> = ({
   unSeenMessage,
   time,
 }) => {
+  console.log(lastMessage);
+
   return (
     <div className="flex flex-row items-center justify-between p-2 bg-opacity-75 rounded-md">
       {/* image profile user/group */}
@@ -40,11 +43,17 @@ const UserChat: React.FC<UserChatProps> = ({
 
           {/* text timbul */}
           <div className="text-sm text-gray-400">
-            {lastMessage != null
-              ? lastMessage.message.length > 50
-                ? lastMessage.message.substring(0, 30) + "..."
-                : lastMessage.message
-              : ""}
+            {lastMessage?.isImage ? (
+              <Image size={16} className="text-black" />
+            ) : lastMessage != null ? (
+              lastMessage.message.length > 50 ? (
+                lastMessage.message.substring(0, 30) + "..."
+              ) : (
+                lastMessage.message
+              )
+            ) : (
+              ""
+            )}
           </div>
         </div>
       </div>

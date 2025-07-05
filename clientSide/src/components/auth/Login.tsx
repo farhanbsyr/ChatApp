@@ -5,6 +5,7 @@ import InputPassword from "../input/InputPassword";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { loginSchema } from "@/schemas/auth/loginSchema";
+import { toast } from "sonner";
 
 interface LoginProps {
   isRegister: any;
@@ -31,10 +32,20 @@ const Login: React.FC<LoginProps> = ({ isRegister }) => {
           withCredentials: true,
         }
       );
+
+      setEmail("");
+      setPassword("");
+      setErrors({});
       console.log("Login sukses:", response.data);
       navigate("/");
       return response.data;
     } catch (error: any) {
+      console.log(error);
+
+      if (error.status === 401) {
+        toast.error(error.response.data.message);
+        setPassword("");
+      }
       console.error("Login gagal:", error.response?.data || error.message);
       throw error;
     }
@@ -58,10 +69,6 @@ const Login: React.FC<LoginProps> = ({ isRegister }) => {
 
     postLogin(email, password);
     console.log(email + " dan " + password);
-
-    setEmail("");
-    setPassword("");
-    setErrors({});
   };
 
   return (
@@ -72,45 +79,52 @@ const Login: React.FC<LoginProps> = ({ isRegister }) => {
         </h1>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          <InputEmail
-            value={email}
-            changValueEmail={setEmail}
-            errors={errors.email}
-          />
-          <InputPassword
-            value={password}
-            changeValuePassword={setPassword}
-            errors={errors.password}
-          />
+      <form
+        action=""
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <InputEmail
+              value={email}
+              changValueEmail={setEmail}
+              errors={errors.email}
+            />
+            <InputPassword
+              value={password}
+              changeValuePassword={setPassword}
+              errors={errors.password}
+            />
+          </div>
+          <div className="flex flex-col text-end text-[12px] ">
+            <p className="transition duration-300 ease-in-out hover:underline hover:text-blue-600">
+              Forget password?
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col text-end text-[12px] ">
-          <p className=" hover:underline hover:text-blue-600 transition duration-300 ease-in-out">
-            Forget password?
+
+        <div className="text-center button-field">
+          <Button
+            className="px-10 py-5 mb-1 text-white transition duration-300 ease-in-out bg-black rounded-md hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95 "
+            type="submit"
+          >
+            Sign In
+          </Button>
+
+          <p className="text-xs">
+            Don't have an account?{" "}
+            <span
+              onClick={() => isRegister(true)}
+              className="font-semibold transition duration-300 ease-in-out hover:underline hover:text-blue-600"
+            >
+              Register
+            </span>
           </p>
         </div>
-      </div>
-
-      <div className="button-field text-center">
-        <Button
-          onClick={handleSubmit}
-          className="px-10 py-5 mb-1 bg-black text-white rounded-md transition duration-300 ease-in-out hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95 "
-          type="submit"
-        >
-          Sign In
-        </Button>
-
-        <p className="text-xs">
-          Don't have an account?{" "}
-          <span
-            onClick={() => isRegister(true)}
-            className="font-semibold hover:underline hover:text-blue-600 transition duration-300 ease-in-out"
-          >
-            Register
-          </span>
-        </p>
-      </div>
+      </form>
     </>
   );
 };

@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 
 interface SidebarCosProps {
   menu: any;
+  contactNotif: string;
 }
 
 const listIcon = [
@@ -46,7 +47,7 @@ const listIcon = [
   },
 ];
 
-const SidebarCos: React.FC<SidebarCosProps> = ({ menu }) => {
+const SidebarCos: React.FC<SidebarCosProps> = ({ menu, contactNotif }) => {
   const navigate = useNavigate();
 
   const onChangeMenu = (value: string) => {
@@ -83,8 +84,13 @@ const SidebarCos: React.FC<SidebarCosProps> = ({ menu }) => {
             <div
               onClick={() => onChangeMenu(item.name)}
               key={index}
-              className=" group flex flex-col text-[#9E9C9D]  text-[10px] p-2 leading-4 justify-center items-center  hover:bg-white hover:bg-opacity-35 hover:rounded-xl h-[61px] w-[61px]"
+              className=" group relative flex flex-col text-[#9E9C9D]  text-[10px] p-2 leading-4 justify-center items-center  hover:bg-white hover:bg-opacity-35 hover:rounded-xl h-[61px] w-[61px]"
             >
+              {item.name == contactNotif ? (
+                <div className="absolute p-1 bg-red-600 rounded-full top-2 right-4"></div>
+              ) : (
+                ""
+              )}
               <Icon
                 size={25}
                 className="text-[#9E9C9D] group-hover:text-white  mb-1"

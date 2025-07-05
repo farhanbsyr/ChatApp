@@ -1,16 +1,20 @@
 import React from "react";
 import user from "@/assets/user.png";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import api from "@/api/axiosApi";
 
 interface ProfileCardProps {
   name: string;
   profileImage?: string;
   status: string;
   isFriendRequest?: boolean;
+  email?: string;
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   name,
+  email,
   profileImage,
   status,
   isFriendRequest,
@@ -21,6 +25,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   } else {
     image = user;
   }
+
+  const addFriends = async (identity: string) => {
+    console.log(identity);
+
+    try {
+      const response = await api.post(
+        "friend/addFriend",
+        { identity: identity },
+        { withCredentials: true }
+      );
+
+      console.log(response);
+
+      toast.success("Friend added successfully!");
+    } catch (error: any) {
+      console.log(error);
+      if (error.status == 404 || error.status == 400) {
+        const response = error.response.data.message;
+        toast.error("Notification", {
+          description: response,
+        });
+      }
+    }
+  };
   return (
     <div className="flex flex-row items-center justify-between py-2 pr-2 bg-opacity-75 rounded-md">
       {/* image profile user/group */}
@@ -47,7 +75,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
       {/* Icon Add friend */}
       {isFriendRequest ? (
-        <button className="p-1 transition duration-500 ease-in-out bg-black rounded-full hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95">
+        <button
+          onClick={() => {
+            if (email != null) {
+              addFriends(email);
+            }
+          }}
+          className="p-1 transition duration-500 ease-in-out bg-black rounded-full hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95"
+        >
           <Plus className="w-4 h-4 text-white" />
         </button>
       ) : (

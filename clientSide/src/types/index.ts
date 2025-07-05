@@ -5,6 +5,7 @@ export interface LastMessage {
   createBy: number;
   createAt: string;
   isSeen: boolean;
+  isImage: boolean;
 }
 
 export interface ProfileImage {
@@ -50,10 +51,25 @@ export interface sendUser {
   receiverId: number;
 }
 
-export interface profile {
+export interface userProfile {
   id: number;
   name: string;
   email: string;
   phoneNumber: string;
   profileImage?: string;
+}
+
+export interface typeFriend {
+  name: string;
+  identity: string;
+  profile: string;
+  isFriend: boolean;
+}
+
+export interface group {
+  id: number;
+  name: string;
+  description: string;
+  profileImage: string;
+  member: number;
 }

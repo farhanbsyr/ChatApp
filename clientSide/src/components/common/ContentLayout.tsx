@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import LeftContent from "./LeftContent";
 import RightContent from "./RightContent";
-import { profile, userChat, userMessage } from "../../types";
+import { userProfile, userChat, userMessage, group } from "../../types";
 import { Client } from "@stomp/stompjs";
 import api from "@/api/axiosApi";
 
@@ -22,11 +22,19 @@ interface notification {
 interface ContentLayoutProps {
   client: Client;
   menu: string;
-  profileUser: profile;
+  profileUser: userProfile;
+  contactNotif: any;
+  friendRequest: userProfile[];
+  friend: userProfile[];
+  group: group[];
 }
 
 const ContentLayout: React.FC<ContentLayoutProps> = ({
   client,
+  friendRequest,
+  friend,
+  group,
+  contactNotif,
   menu,
   profileUser,
 }) => {
@@ -274,7 +282,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
         console.log("Received:", parsedResponse);
       }
     );
-    console.log("masuk?");
 
     return () => {
       subscriptionUser.unsubscribe();
@@ -464,12 +471,16 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     <div className="flex flex-row h-full gap-4 rounded-3xl">
       <div className="w-[30%] pl-5 pt-5 h-full">
         <LeftContent
+          friendRequest={friendRequest}
+          friend={friend}
+          group={group}
           profileUser={profileUser}
           pinnedMessage={pinnedMessage}
           unPinnedMessage={unPinnedMessage}
           onChangeConvertation={changeConvertation}
           onSeenMessage={handleSeenMessage}
           menu={menu}
+          contactNotif={contactNotif}
         />
       </div>
       {/* Isi chat friend or group */}
