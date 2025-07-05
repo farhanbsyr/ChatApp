@@ -31,16 +31,12 @@ const AddFriends = () => {
   const [open, setOpen] = useState(false);
 
   const addFriends = async (identity: string) => {
-    console.log(identity);
-
     try {
-      const response = await api.post(
+      await api.post(
         "friend/addFriend",
         { identity: identity },
         { withCredentials: true }
       );
-
-      console.log(response);
 
       setOpen(false);
       toast.success("Friend added successfully!");
@@ -57,10 +53,6 @@ const AddFriends = () => {
 
   const searchFriends = async (identity: string) => {
     try {
-      console.log(friend);
-      console.log(isFriend);
-      console.log(search);
-
       const response: any = await api.post(
         "friend/searchFriend",
         { identity: identity },
@@ -91,10 +83,6 @@ const AddFriends = () => {
       }
     }
   };
-
-  useEffect(() => {
-    console.log(isButtonDisabled);
-  }, [isButtonDisabled]);
 
   useEffect(() => {
     if (search) {
@@ -233,8 +221,6 @@ const AddFriends = () => {
                 disabled={isButtonDisabled}
                 onClick={() => {
                   handleSubmit(email);
-                  alert("KECLICK 2 BANG!");
-                  console.log("KECLICK 2 BANG!");
                 }}
               >
                 {search

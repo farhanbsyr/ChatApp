@@ -79,8 +79,11 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
   const sortingMessage = (incomingMessage: userMessage) => {
     const currentUnPinned = unPinnedMessageRef.current;
-
+    console.log("masuk sini nggasi?");
+    console.log(currentUnPinned);
     if (!currentUnPinned) return;
+
+    console.log("galewatsini ya?");
 
     const upadateMessage = currentUnPinned.map((chat) => {
       if (
@@ -162,10 +165,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     setMessages(newMessages);
   };
 
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
-
   const seenMessageGroup = (
     groupId: number,
     isPinned: boolean,
@@ -237,7 +236,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     if (messages) {
       messagesRef.current = messages;
     }
-    console.log(messages);
   }, [messages]);
 
   useEffect(() => {
@@ -410,8 +408,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
   const sendImage = async (file: File, notification: object) => {
     try {
-      console.log(notification);
-
       const formData = new FormData();
       formData.append("file", file);
       formData.append(
@@ -421,11 +417,9 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
         })
       );
 
-      const response = await api.post("/chat/sendImage", formData, {
+      await api.post("/chat/sendImage", formData, {
         withCredentials: true,
       });
-
-      console.log(response);
     } catch (error) {
       console.log(error);
     }

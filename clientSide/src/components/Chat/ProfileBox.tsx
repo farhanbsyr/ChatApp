@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useEffect } from "react";
+
 interface ProfileBoxProps {
   name: string | null;
   member: number | null;
@@ -7,10 +7,6 @@ interface ProfileBoxProps {
 }
 
 const ProfileBox: React.FC<ProfileBoxProps> = ({ name, member, profile }) => {
-  useEffect(() => {
-    console.log(profile);
-  }, []);
-
   return (
     <div className="flex flex-row items-center gap-[10px]">
       {profile != null ? (

@@ -20,8 +20,6 @@ const UserChat: React.FC<UserChatProps> = ({
   unSeenMessage,
   time,
 }) => {
-  console.log(lastMessage);
-
   return (
     <div className="flex flex-row items-center justify-between p-2 bg-opacity-75 rounded-md">
       {/* image profile user/group */}

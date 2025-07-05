@@ -27,9 +27,6 @@ const LeftContent: React.FC<LeftContentProps> = ({
   group,
   menu,
 }) => {
-  console.log(friend);
-  console.log(friendRequest);
-  console.log(group);
   return (
     <>
       <div className="relative flex flex-col h-full">

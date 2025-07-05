@@ -45,9 +45,6 @@ const RightContent: React.FC<RightContentProps> = ({
     setShowEmoji(false);
   };
 
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
   return (
     <div className="flex flex-col w-full h-full pr-4">
       {isGroup ? (
@@ -118,7 +115,6 @@ const RightContent: React.FC<RightContentProps> = ({
                 width="100%"
                 height={250}
                 onEmojiClick={(emojiData) => {
-                  console.log(emojiData.emoji);
                   setMessage((prev) => prev + emojiData.emoji);
                 }}
               />

@@ -1,5 +1,5 @@
 import { sendUser, userChat } from "@/types";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import UserChat from "./UserChat";
 import { ScrollArea } from "../ui/scroll-area";
 import AddFriends from "../Friends/AddFriends";
@@ -83,10 +83,6 @@ const ChatContent: React.FC<ChatContentProps> = ({
     ...(pinnedMessage || []),
     ...(unPinnedMessage || []),
   ];
-
-  useEffect(() => {
-    console.log(chatMessage);
-  }, [chatMessage]);
 
   // search by name
   const filteredMsg: userChat[] =
