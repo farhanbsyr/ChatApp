@@ -42,7 +42,7 @@ export interface userMessage {
   name?: string;
   isGroup: boolean;
   createdOn: string;
-  image?: any;
+  image?: string;
   isImage: boolean;
 }
 

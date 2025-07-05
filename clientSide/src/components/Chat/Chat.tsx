@@ -7,7 +7,7 @@ interface ChatProps {
   message: string;
   isSeen?: boolean;
   showedGrup: boolean;
-  profile: any;
+  profile?: string;
   member: number | null;
   seen?: object[];
   isImage: boolean;
@@ -38,7 +38,7 @@ const Chat: React.FC<ChatProps> = ({
   }
 
   if (profile != null) {
-    image = `data:image/jpeg;base64,${profile.image}`;
+    image = `data:image/jpeg;base64,${profile}`;
   }
 
   if (profile == null) {
