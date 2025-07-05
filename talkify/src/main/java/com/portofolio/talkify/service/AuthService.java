@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,39 +34,48 @@ public class AuthService {
     private BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder(12);
 
     public ResponseEntity<Map<String, String>> login (LoginDTO users){
-        Authentication authentication = 
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(users.getUsername(), users.getPassword()));
-        
-        UserLoginProjection user = userRepository.findUserByEmailOrNumber(users.getUsername());
-        long expiredAccessToken = 15 * 60;
-        // long expiredRefreshToken = 7 * 24 * 60 * 60;
-        if (authentication.isAuthenticated()) {
-            String token = jwtService.generateToken(users.getUsername(), user.getId(), expiredAccessToken * 1000);
-            // String refreshToken = jwtService.generateToken(users.getUsername(), expiredRefreshToken * 1000);
-
-            ResponseCookie cookie = ResponseCookie.from("access_token", token)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(expiredAccessToken)
-                .sameSite("Strict")
-                .build();
-
-            // ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
-            //     .httpOnly(true)
-            //     .secure(true)
-            //     .path("/")
-            //     .maxAge(expiredRefreshToken)
-            //     .sameSite("Strict")
-            //     .build();
-
-            return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                // .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(Map.of("message", "Login sukses"));
+        try {
+            Authentication authentication = 
+                authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(users.getUsername(), users.getPassword()));
+            
+            UserLoginProjection user = userRepository.findUserByEmailOrNumber(users.getUsername());
+            long expiredAccessToken = 15 * 60;
+            // long expiredRefreshToken = 7 * 24 * 60 * 60;
+            if (authentication.isAuthenticated()) {
+                String token = jwtService.generateToken(users.getUsername(), user.getId(), expiredAccessToken * 1000);
+                // String refreshToken = jwtService.generateToken(users.getUsername(), expiredRefreshToken * 1000);
+    
+                ResponseCookie cookie = ResponseCookie.from("access_token", token)
+                    .httpOnly(true)
+                    .secure(true)
+                    .path("/")
+                    .maxAge(expiredAccessToken)
+                    .sameSite("Strict")
+                    .build();
+    
+                // ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+                //     .httpOnly(true)
+                //     .secure(true)
+                //     .path("/")
+                //     .maxAge(expiredRefreshToken)
+                //     .sameSite("Strict")
+                //     .build();
+    
+                return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    // .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .body(Map.of("message", "Login sukses"));
+            }
+            
+            return ResponseEntity.status(401).body(Map.of("message", "Login gagal"));
+            
+        } catch (BadCredentialsException e) {
+            // TODO: handle exception
+            return ResponseEntity.status(401).body(Map.of("message", "Email or password is wrong"));
+        } catch (Exception e) {
+            // kalau ada error lain
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
-        
-        return ResponseEntity.status(401).body(Map.of("message", "Login gagal"));
     }
 
     public User register (User user){

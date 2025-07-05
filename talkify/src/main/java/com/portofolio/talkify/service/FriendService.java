@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.portofolio.talkify.controller.WebSocketController;
 import com.portofolio.talkify.modal.ProfileImage;
 import com.portofolio.talkify.modal.User;
 import com.portofolio.talkify.modal.UserFriends;
@@ -44,6 +45,9 @@ public class FriendService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private WebSocketController webSocketController;
 
     public ResponseEntity<ApiResponse<Object>> searchFriend(String identity, HttpServletRequest request) {
         Map<String, Object> result = new HashMap<>();
@@ -97,6 +101,7 @@ public class FriendService {
     public ResponseEntity<ApiResponse<Object>> addFriend(String identityUser, HttpServletRequest request) {
         String token = null;
         Long userId = null;
+        Boolean isSaved = false;
         token = tokenService.getTokenFromCookie(request.getCookies(), "access_token");
 
         if (token.equals("token has no value")) {
@@ -120,6 +125,19 @@ public class FriendService {
         userFriends.setIsSaved(true);
 
         userFriendsRepository.save(userFriends);
+
+        UserFriends followedFriends = userFriendsRepository.findUserFriendByIdFriends(friend.getId(), userId);
+
+        if (followedFriends != null) {
+            isSaved = true;
+        }
+        
+        // System.out.println(userId);
+        // System.out.println(friend.getId());
+
+        Object profile = userService.getProfile(friend.getId());
+
+        webSocketController.addFriend(profile, userId, isSaved);
         return ResponseUtil.generateSuccessResponse("Success to save " + friend.getName(), null, HttpStatus.CREATED);
     }
 
@@ -132,13 +150,33 @@ public class FriendService {
 
         Long userId = jwtService.extractUserId(token);
 
+        // untuk mendapatkan data user lain yang me add kita
         List<UserFriends> listUserFriends = userFriendsRepository.findFriendRequest(userId);
+
+        // untuk mendapatkan data kita yang me add user lain
+        List<UserFriends> listUserFriendFollback = userFriendsRepository.findByUserId(userId);
+
+        List<UserFriends> notYetFriends = new ArrayList<>();
+
+        for (UserFriends userRequest : listUserFriends) {
+            boolean found = false;
+            for (UserFriends followed : listUserFriendFollback) {
+                if (userRequest.getUserId().equals(followed.getUserFriendId())) {
+                // Teman yang sudah di add balik
+                found = true;
+                break;
+                }
+            }
+            if (!found) {
+                notYetFriends.add(userRequest);
+            }
+        }
 
         if (listUserFriends == null) {
             return ResponseUtil.generateSuccessResponse("User doesn't have friend request", listUserFriends);
         }
 
-        for (UserFriends userFriend : listUserFriends) {
+        for (UserFriends userFriend : notYetFriends) {
             Object user = userService.getProfile(userFriend.getUserId());
             if (user != null) {
                 response.add(user);

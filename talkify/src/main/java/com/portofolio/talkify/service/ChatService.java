@@ -86,6 +86,7 @@ public class ChatService {
             lastMessageResponse.put("isSeen", lastMessage.getIsSeen());
             lastMessageResponse.put("createdAt", lastMessage.getCreatedOn());
             lastMessageResponse.put("createBy", lastMessage.getCreatedBy());
+            lastMessageResponse.put("isImage", lastMessage.getIsImage());
             userChatProfile.put("lastMessage", lastMessageResponse);
             userChatProfile.put("createdOn", lastMessage.getCreatedOn());
         } else if (userConvertation.getIsDelete() != true && lastMessage == null) {
@@ -180,6 +181,7 @@ public class ChatService {
             lastMessageResponse.put("createdBy", lastMessage.getCreatedBy());
             lastMessageResponse.put("sender", lastMessage.getSenderMessage());
             lastMessageResponse.put("message", lastMessage.getMessage());
+            lastMessageResponse.put("isImage", lastMessage.getIsImage());
             detailGroupUser.put("lastMessage", lastMessageResponse);
             detailGroupUser.put("createdOn", lastMessage.getCreatedOn());
         } else {

@@ -181,6 +181,25 @@ public class WebSocketController {
                 simpMessagingTemplate.convertAndSend("/topic/" + userGroup.getUserId(), response);
             }
         }
+
+    }
+    // add friend
+    public void addFriend(Object profile, Long userId, Boolean isSaved){
+        Map<String , Object> response = new HashMap<>();
+
+        // if (isSaved) {
+        //     return;
+        // }
+
+        response.put("userProfile", profile);
+        response.put("type", NotificationTYPE.ADDEDFRIEND);
+        response.put("addedBy", userId);
+        response.put("isSaved", isSaved);
+
+        Map<String, Object> objectProfile = (Map<String, Object>) profile;
+        Long parseId = Long.parseLong(objectProfile.get("id").toString());
+        simpMessagingTemplate.convertAndSend("/topic/" + parseId, response);
+        simpMessagingTemplate.convertAndSend("/topic/" + userId, response);
     }
 
 
