@@ -283,6 +283,7 @@ public class ChatService {
         response.put("isDelete", deleteMessage(userMessage.getIdUserConvertation(), userMessage.getSender(), userMessage.getId()));
         response.put("isGroup", false);
         response.put("isImage", userMessage.getIsImage());
+        response.put("convertationId", userMessage.getIdUserConvertation());
 
         return response;
     }
