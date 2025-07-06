@@ -43,6 +43,7 @@ export interface userMessage {
   isGroup: boolean;
   createdOn: string;
   image?: string;
+  convertationId: number;
   isImage: boolean;
 }
 

@@ -87,9 +87,13 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
     const upadateMessage = currentUnPinned.map((chat) => {
       if (
-        chat.id === incomingMessage.receiverId &&
+        chat.conversationId === incomingMessage.convertationId &&
         chat.isGroup === incomingMessage.isGroup
       ) {
+        console.log(
+          "masuk sini ngga? " + chat.id + " " + incomingMessage.receiverId
+        );
+
         return {
           ...chat,
           createdOn: incomingMessage.createdOn,
@@ -460,6 +464,10 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
       sendImage(file, payload);
     }
   };
+
+  useEffect(() => {
+    console.log(unPinnedMessage);
+  }, [unPinnedMessage]);
 
   return (
     <div className="flex flex-row h-full gap-4 rounded-3xl">
