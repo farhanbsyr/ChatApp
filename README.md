@@ -4,7 +4,7 @@
 
 **[➡️ LIHAT LIVE DEMO ⬅️](https://drive.google.com/file/d/1j8eR78hD77mgVgRRykAOQwp0yb_i1xv-/view?usp=sharing)**
 
-![Screenshot atau GIF Demo Proyek Anda](https://drive.google.com/file/d/1fW53YxBCu0uVrv1yLakTDVXXUzIChR76/view?usp=sharing)
+**![Screenshot Proyek Anda](https://drive.google.com/file/d/1fW53YxBCu0uVrv1yLakTDVXXUzIChR76/view?usp=sharing)**
 
 ## 📝 Deskripsi Proyek
 
