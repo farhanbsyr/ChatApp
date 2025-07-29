@@ -6,19 +6,23 @@ import AddFriends from "../Friends/AddFriends";
 import avatarUser from "@/assets/user.png";
 import avatarGroup from "@/assets/group (1).png";
 import Search from "../Search/Search";
+import { Client } from "@stomp/stompjs";
 
 interface ChatContentProps {
   onChangeConvertation: any;
   pinnedMessage?: userChat[];
   unPinnedMessage?: userChat[];
-  onSeenMessage: any;
+  // onSeenMessage: any;
+  userId: number;
+  client: Client;
 }
 
 const ChatContent: React.FC<ChatContentProps> = ({
+  client,
   onChangeConvertation,
   pinnedMessage,
   unPinnedMessage,
-  onSeenMessage,
+  userId,
 }) => {
   const [selected, setSelected] = useState<string>("");
   const [keyword, setKeyword] = useState<string>("");
@@ -27,6 +31,36 @@ const ChatContent: React.FC<ChatContentProps> = ({
   const nowDay = now.getDay();
   const nowMonth = now.getMonth() + 1;
   const nowYear = now.getFullYear();
+
+  const handleSeenMessage = (
+    unSeenMessage: number,
+    convertationId: number,
+    messageType: string
+  ) => {
+    // const client = clientRef.current;
+    if (!client) {
+      console.log("Client is not yet active");
+      return;
+    }
+
+    if (unSeenMessage == 0) {
+      return;
+    }
+
+    console.log(unSeenMessage);
+    console.log(convertationId + " ini covertation");
+
+    const payload = {
+      conversationId: convertationId,
+      userId: userId,
+      messageTYPE: messageType,
+    };
+
+    client.publish({
+      destination: "/app/enterMessage",
+      body: JSON.stringify(payload),
+    });
+  };
 
   const days = ["minggu", "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"];
 
@@ -71,12 +105,10 @@ const ChatContent: React.FC<ChatContentProps> = ({
     name: string,
     member: number,
     sendUser: sendUser,
-    unSeenMessage: number,
     isGroup: boolean,
     profile: string
   ) => {
     onChangeConvertation(id, type, name, member, sendUser, isGroup, profile);
-    onSeenMessage(unSeenMessage);
   };
 
   const chatMessage: userChat[] = [
@@ -155,9 +187,13 @@ const ChatContent: React.FC<ChatContentProps> = ({
                       item.name,
                       item.memberGroup,
                       sendUser,
-                      item.unSeenMessage,
                       item.isGroup,
                       userImage
+                    );
+                    handleSeenMessage(
+                      item.unSeenMessage,
+                      item.conversationId,
+                      isGroup
                     );
                     setSelected(
                       item.isGroup ? item.id + isGroup + "" : item.id + ""

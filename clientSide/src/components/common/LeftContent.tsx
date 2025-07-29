@@ -1,12 +1,14 @@
+import { Client } from "@stomp/stompjs";
 import { userProfile, userChat, group } from "../../types";
 import ChatContent from "../Chat/ChatContent";
 import ContactContent from "../Contact/ContactContent";
 
 interface LeftContentProps {
+  client: Client;
   onChangeConvertation: any;
   pinnedMessage?: userChat[];
   unPinnedMessage?: userChat[];
-  onSeenMessage: any;
+  // onSeenMessage: any;
   menu: string;
   profileUser: userProfile;
   contactNotif: any;
@@ -20,25 +22,28 @@ const LeftContent: React.FC<LeftContentProps> = ({
   contactNotif,
   pinnedMessage,
   onChangeConvertation,
-  onSeenMessage,
   profileUser,
   friend,
   friendRequest,
   group,
   menu,
+  client,
 }) => {
   return (
     <>
       <div className="relative flex flex-col h-full">
         {menu.toLowerCase() === "chat" ? (
           <ChatContent
+            userId={profileUser.id}
+            client={client}
             unPinnedMessage={unPinnedMessage}
             pinnedMessage={pinnedMessage}
-            onSeenMessage={onSeenMessage}
+            // onSeenMessage={onSeenMessage}
             onChangeConvertation={onChangeConvertation}
           />
         ) : (
           <ContactContent
+            client={client}
             friendRequest={friendRequest}
             friend={friend}
             group={group}

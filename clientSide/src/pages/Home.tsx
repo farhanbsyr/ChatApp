@@ -1,5 +1,5 @@
 import SidebarCos from "../components/SidebarCos";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "@/api/axiosApi";
 import AutoLogout from "@/hooks/AutoLogout";
 import ContentLayout from "@/components/common/ContentLayout";
@@ -18,6 +18,20 @@ const Home = () => {
   const changeMenu = (value: string) => {
     setMenu(value);
   };
+  const friendRef = useRef<userProfile[]>();
+  const friendRequesRef = useRef<userProfile[]>();
+
+  useEffect(() => {
+    if (friend) {
+      friendRef.current = friend;
+    }
+  }, [friend]);
+
+  useEffect(() => {
+    if (friendRequest) {
+      friendRequesRef.current = friendRequest;
+    }
+  }, [friendRequest]);
 
   AutoLogout();
 
@@ -50,25 +64,44 @@ const Home = () => {
 
         client.subscribe(`/topic/${profile?.id}`, (response: any) => {
           const parsedResponse: any = JSON.parse(response.body);
+          console.log(parsedResponse);
 
           if (parsedResponse.type === "ADDEDFRIEND") {
-            console.log(parsedResponse);
             const userProfile: userProfile = parsedResponse.userProfile;
 
             if (parsedResponse.addedBy == profile?.id) {
-              const newFriendRequest = friendRequest.filter(
-                (fr) => fr.id !== userProfile.id
-              );
-              setFriendRequest(newFriendRequest);
-              const newFriend: userProfile[] = [...friend, userProfile];
-              setFriend(newFriend);
+              if (friendRequesRef.current) {
+                console.log(friendRequesRef.current);
+
+                const newFriendRequest = friendRequesRef.current.filter(
+                  (fr) => fr.id !== userProfile.id
+                );
+                console.log(newFriendRequest);
+
+                setFriendRequest(newFriendRequest);
+              }
+
+              if (friendRef.current) {
+                const newFriend: userProfile[] = [
+                  ...friendRef.current,
+                  userProfile,
+                ];
+
+                setFriend(newFriend);
+                return;
+              }
+
+              setFriend([userProfile]);
               return;
             }
 
             if (parsedResponse.isSaved == true) {
               return;
             }
+
             const coba: userProfile[] = [...friendRequest, userProfile];
+            console.log(coba);
+
             setFriendRequest(coba);
           }
         });
@@ -157,6 +190,7 @@ const Home = () => {
             profileUser={profile}
             client={connectedClient}
             menu={menu}
+            setMenu={setMenu}
           />
         </div>
       ) : (

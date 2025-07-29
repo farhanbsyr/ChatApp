@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from "react";
 import Search from "../Search/Search";
 import ProfileCard from "./ProfileCard";
-import { userProfile } from "@/types";
+import { group, userProfile } from "@/types";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { ScrollArea } from "../ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import ContactProfile from "../Friends/ContactProfile";
+import { Client } from "@stomp/stompjs";
 
 interface ContactContentProps {
   profileUser: userProfile;
@@ -11,14 +20,7 @@ interface ContactContentProps {
   friendRequest: userProfile[];
   friend: userProfile[];
   group: group[];
-}
-
-interface group {
-  id: number;
-  name: string;
-  description: string;
-  profileImage: string;
-  member: number;
+  client: Client;
 }
 
 const ContactContent: React.FC<ContactContentProps> = ({
@@ -26,6 +28,7 @@ const ContactContent: React.FC<ContactContentProps> = ({
   friend,
   friendRequest,
   group,
+  client,
 }) => {
   const [search, setSearch] = useState<string>("");
   const [friendRequestDropdown, setFriendRequestDropdown] =
@@ -137,6 +140,7 @@ const ContactContent: React.FC<ContactContentProps> = ({
               </div>
             </div>
             {/* buat list group  */}
+
             <div
               className={`
                 overflow-hidden
@@ -151,12 +155,33 @@ const ContactContent: React.FC<ContactContentProps> = ({
             >
               {filteredGroup?.map((usergroup) => {
                 return (
-                  <ProfileCard
-                    key={usergroup.id}
-                    name={usergroup.name}
-                    status={`Member: ${usergroup.member}`}
-                    profileImage={usergroup.profileImage}
-                  />
+                  <Dialog key={usergroup.id}>
+                    <DialogTrigger asChild>
+                      <div role="button" className="cursor-pointer">
+                        <ProfileCard
+                          key={usergroup.id}
+                          name={usergroup.name}
+                          status={`Member: ${usergroup.member}`}
+                          profileImage={usergroup.profileImage}
+                        />
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent className="w-[350px]">
+                      <DialogTitle className="hidden "></DialogTitle>
+                      <DialogDescription>
+                        <ContactProfile
+                          userId={profileUser.id}
+                          client={client}
+                          name={usergroup.name}
+                          status={usergroup.description}
+                          profileImage={usergroup.profileImage}
+                          phoneNumber={usergroup.member}
+                          friendId={usergroup.id}
+                          isGroup={true}
+                        />
+                      </DialogDescription>
+                    </DialogContent>
+                  </Dialog>
                 );
               })}
             </div>
@@ -191,12 +216,32 @@ const ContactContent: React.FC<ContactContentProps> = ({
             `}
             >
               {filteredFriend?.map((userFriend) => (
-                <ProfileCard
-                  key={userFriend.id}
-                  name={userFriend.name}
-                  status="Available"
-                  profileImage={userFriend.profileImage}
-                />
+                <Dialog key={userFriend.id}>
+                  <DialogTrigger asChild>
+                    <div role="button" className="cursor-pointer">
+                      <ProfileCard
+                        name={userFriend.name}
+                        status="Available"
+                        profileImage={userFriend.profileImage}
+                      />
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="w-[350px]">
+                    <DialogTitle className="hidden"></DialogTitle>
+                    <DialogDescription>
+                      <ContactProfile
+                        userId={profileUser.id}
+                        client={client}
+                        name={userFriend.name}
+                        status={"Available"}
+                        profileImage={userFriend.profileImage}
+                        phoneNumber={userFriend.phoneNumber}
+                        friendId={userFriend.id}
+                        isGroup={false}
+                      />
+                    </DialogDescription>
+                  </DialogContent>
+                </Dialog>
               ))}
             </div>
           </div>

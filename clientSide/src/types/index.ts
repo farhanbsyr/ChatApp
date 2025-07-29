@@ -2,7 +2,6 @@ export interface LastMessage {
   sender: number;
   receiver: number;
   message: string;
-  createBy: number;
   createAt: string;
   isSeen: boolean;
   isImage: boolean;
@@ -18,7 +17,7 @@ export interface userChat {
   handphoneNumber: number;
   name: string;
   email: string;
-  lastMessage: LastMessage;
+  lastMessage: LastMessage | null;
   userFriends: boolean;
   profileImage: ProfileImage | null;
   pinned: boolean;

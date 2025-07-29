@@ -56,7 +56,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <div className="">
           <img
             src={image}
-            alt="avatar"
+            alt={`Avatar ${name}`}
             width={50}
             height={50}
             className="w-[45px] h-[45px] bg-gray-100 rounded-full object-cover"
