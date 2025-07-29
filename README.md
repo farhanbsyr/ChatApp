@@ -6,14 +6,14 @@
 
 ## 📝 Deskripsi Proyek
 
-"Aplikasi chatting real-time yang dibangun untuk komunikasi jarak jauh antar user agar mudah dalam mengirimkan infomrasi, kabar, ataupun berkenalan.""
+"Aplikasi chatting real-time yang dibangun untuk komunikasi jarak jauh antar user agar mudah dalam mengirimkan infomrasi, kabar, ataupun berkenalan."
 
 ## 🛠️ Tech Stack
 
 Daftar teknologi yang saya gunakan:
 
 - **Frontend:** React, TypeScript, TailwindCSS, SchdnUI
-- **Backend:** Java Spring Boot, WebSocket, Spring Security
+- **Backend:** Java Spring Boot, WebSocket, Spring Security, Bcrypt
 - **Database:** PostgreSQL
 - **Authentication:** JSON Web Tokens (JWT)
 - **Deployment:** Vercel (Frontend), Heroku (Backend)
