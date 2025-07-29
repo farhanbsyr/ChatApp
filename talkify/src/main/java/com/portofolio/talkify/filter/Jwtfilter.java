@@ -40,12 +40,8 @@ public class Jwtfilter extends OncePerRequestFilter {
 
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
-            System.out.println("ini cookie");
-            System.out.println(cookies);
            
             for (Cookie cookie : cookies){
-                System.out.println("Nama Cookie: " + cookie.getName());
-                System.out.println("Value: " + cookie.getValue());
                 if (cookie.getName().equals("access_token")) {
                     token = cookie.getValue();
                 }
@@ -59,8 +55,6 @@ public class Jwtfilter extends OncePerRequestFilter {
 
         if (token != null) {
             username = jwtService.extractUserName(token);
-            System.out.println("Raw Token: [" + token + "]");
-        System.out.println("Token Length: " + token.length());
         }
 
         // if (token == null) {

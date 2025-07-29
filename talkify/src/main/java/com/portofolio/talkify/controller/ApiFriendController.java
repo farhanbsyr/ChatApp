@@ -42,6 +42,7 @@ public class ApiFriendController {
         }
     }
 
+    @Transactional
     @PostMapping("/addFriend")
     public ResponseEntity<ApiResponse<Object>> addFriend(HttpServletRequest request, @RequestBody Map<String, String> identity){
         try {

@@ -5,5 +5,6 @@ public enum NotificationTYPE {
     UPDATEPROFILE,
     ADDEDFRIEND,
     SEENMESSAGE,
-    FAILED
+    FAILED,
+    GETCONVERSATION
 }

@@ -13,4 +13,9 @@ public interface UserConvertaionRepository extends JpaRepository<UserConvertatio
             select * from user_convertation uc where user_satu_id = ?1 or user_dua_id = ?1;
             """, nativeQuery = true)
     List<UserConvertation> listConvertations(Long userId);
+
+    @Query(value = """
+            select * from user_convertation uc where (user_satu_id = ?1 and user_dua_id = ?2) or user_satu_id = ?2 and user_dua_id = ?1;
+            """, nativeQuery = true)
+    UserConvertation findConvertation(Long userSatuId, Long userDuaId);
 }

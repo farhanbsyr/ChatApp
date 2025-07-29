@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.portofolio.talkify.Notification.MessageTYPE;
 import com.portofolio.talkify.Notification.NotificationUser;
+import com.portofolio.talkify.modal.ChatConvertation;
 import com.portofolio.talkify.modal.DeletedMessage;
 import com.portofolio.talkify.modal.Group;
 import com.portofolio.talkify.modal.GroupMessage;
@@ -338,6 +339,18 @@ public class ChatService {
             }
         }
         return responseList; 
+    }
+
+    public ChatConvertation createChatConvertation (Long userId, Long userConvertationId) {
+        ChatConvertation newChatConvertation = new ChatConvertation();
+        newChatConvertation.setCreatedBy(userId);
+        newChatConvertation.setCreatedOn(new Date());
+        newChatConvertation.setIsDelete(false);
+        newChatConvertation.setIsPINNED(false);
+        newChatConvertation.setUserId(userId);
+        newChatConvertation.setUserConvertationId(userConvertationId);
+
+        return newChatConvertation;
     }
 
     

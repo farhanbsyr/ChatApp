@@ -69,8 +69,15 @@ public class WebSocketController {
         
         if (notificationUser.getMessageTYPE() == MessageTYPE.TEXT) {
             UserConvertation userConvertation = userConvertaionRepository.findById(notificationUser.getConvertationId()).orElse(null);
-            List<ChatConvertation> chatConvertations = chatConvertationRepository.findByUserConvertationId(userConvertation.getId());
+            ChatConvertation chatFriendConvertation = chatConvertationRepository.findByUserConvertationIdAndUserId(notificationUser.getConvertationId(), notificationUser.getReceiverId());
             
+            if (chatFriendConvertation == null) {
+                ChatConvertation newbgt = chatService.createChatConvertation(notificationUser.getReceiverId(), notificationUser.getConvertationId());
+                chatFriendConvertation = chatConvertationRepository.save(newbgt);
+            }
+
+            List<ChatConvertation> chatConvertations = chatConvertationRepository.findByUserConvertationId(userConvertation.getId());
+
             User user = userRepository.findById(notificationUser.getReceiverId()).orElse(null);
             if (user == null ) {
                 response.put("type", NotificationTYPE.FAILED);
@@ -108,8 +115,12 @@ public class WebSocketController {
     public void enterMessage(NotificationSeen notificationSeen){
         Map<String, Object> response = new HashMap<>();
         // ArrayList<Object> listResponse = new ArrayList<>();
-
+        System.out.println("masuk ngga?");
+        System.out.println(notificationSeen.getMessageTYPE());
+        System.out.println(notificationSeen.getConversationId());
+        System.out.println(notificationSeen.getUserId());
         if (notificationSeen.getMessageTYPE() == MessageTYPE.TEXT) {
+            System.out.println("step2");
             List<UserMessage> listMessageFalse = userMessageRepository.listFalseMessage(notificationSeen.getConversationId(), notificationSeen.getUserId());
             UserConvertation userConvertation = userConvertaionRepository.findById(notificationSeen.getConversationId()).orElse(null);
             
@@ -119,14 +130,14 @@ public class WebSocketController {
                 simpMessagingTemplate.convertAndSend("/topic/" + notificationSeen.getUserId() , response);
                 return;
             }
-
+            System.out.println("Step3");
             List<ChatConvertation> chatConvertations = chatConvertationRepository.findByUserConvertationId(userConvertation.getId());
 
             for (UserMessage userMessage : listMessageFalse) {
                 // Map<String, Object> responObj = new HashMap<>();
                 userMessage.setIsSeen(true);
                 userMessageRepository.save(userMessage);
-
+                System.out.println("step4");
                 // responObj.put("messageId", userMessage.getId());
                 // responObj.put("isSeen", userMessage.getIsSeen());
                 
@@ -140,8 +151,8 @@ public class WebSocketController {
             for (ChatConvertation chatConvertation : chatConvertations) {
                 response.put("isPinned", chatConvertation.getIsPINNED());
                 simpMessagingTemplate.convertAndSend("/topic/" + chatConvertation.getUserId() , response);
-                return;
             }
+            return;
         }
         if (notificationSeen.getMessageTYPE() == MessageTYPE.GROUP) {
             UserGroups userGroups = userGroupsRepository.findByGroupIdAndUserId(notificationSeen.getConversationId(), notificationSeen.getUserId());
@@ -183,13 +194,10 @@ public class WebSocketController {
         }
 
     }
+
     // add friend
     public void addFriend(Object profile, Long userId, Boolean isSaved){
         Map<String , Object> response = new HashMap<>();
-
-        // if (isSaved) {
-        //     return;
-        // }
 
         response.put("userProfile", profile);
         response.put("type", NotificationTYPE.ADDEDFRIEND);
@@ -202,6 +210,60 @@ public class WebSocketController {
         simpMessagingTemplate.convertAndSend("/topic/" + userId, response);
     }
 
+    @Transactional
+    @MessageMapping("/getConvertation")
+    public void createConvertation(Map<String, Object> payload){
+        Map<String, Object> response = new HashMap<>();
+        Long userId = Long.parseLong(payload.get("userId").toString());
+        Long friendId = Long.parseLong(payload.get("friendId").toString());
+        Boolean isGroup = Boolean.parseBoolean(payload.get("isGroup").toString());
+
+        if (!isGroup) {
+            UserConvertation checkConvertation = userConvertaionRepository.findConvertation(userId, friendId);
+            
+            if (checkConvertation != null) {
+                ChatConvertation chatConvertation = chatConvertationRepository.findByUserConvertationIdAndUserId(checkConvertation.getId(), userId);
+                response.put("isPinned", chatConvertation.getIsPINNED());
+                response.put("type", NotificationTYPE.GETCONVERSATION);
+                response.put("conversation", chatService.getUserChat(userId, checkConvertation, chatConvertation.getIsPINNED()));
+                response.put("isSaved", true);
+                simpMessagingTemplate.convertAndSend("/topic/" + userId , response);
+                return;
+            }
+            
+            UserConvertation newConvertation = new UserConvertation();
+            newConvertation.setCreatedBy(userId);
+            newConvertation.setCreatedOn(new Date());
+            newConvertation.setIsDelete(false);
+            newConvertation.setUserSatuId(userId);
+            newConvertation.setUserDuaId(friendId);
+            
+            UserConvertation savedUserConvertation = userConvertaionRepository.save(newConvertation);
+            ChatConvertation newChatConvertation1 = chatService.createChatConvertation(userId, savedUserConvertation.getId());
+            // 
+            // nanti tambahin ketika send meesage kalo chatconvertation dari temennya belum ada berati harus dibuatkan dulu
+            
+            chatConvertationRepository.save(newChatConvertation1);
+            
+            response.put("isPinned", false);
+            response.put("type", NotificationTYPE.GETCONVERSATION);
+            response.put("conversation", chatService.getUserChat(userId, savedUserConvertation, false));
+            response.put("isSaved", false);
+            simpMessagingTemplate.convertAndSend("/topic/" + userId, response);
+            return;
+        }
+
+        UserGroups userGroups = userGroupsRepository.findByGroupIdAndUserId(friendId, userId);
+
+        if (userGroups != null) {
+            response.put("isPinned", userGroups.getIsPINNED());
+            response.put("type", NotificationTYPE.GETCONVERSATION);
+            response.put("conversation", chatService.getGroupChat(userId, userGroups));
+            response.put("isSaved", true);
+            simpMessagingTemplate.convertAndSend("/topic/" + userId , response);
+            return;
+        }
+    }
 
 }
 
