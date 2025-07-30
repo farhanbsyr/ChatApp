@@ -27,16 +27,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   }
 
   const addFriends = async (identity: string) => {
-    console.log(identity);
-
     try {
-      const response = await api.post(
+      await api.post(
         "friend/addFriend",
         { identity: identity },
         { withCredentials: true }
       );
-
-      console.log(response);
 
       toast.success("Friend added successfully!");
     } catch (error: any) {

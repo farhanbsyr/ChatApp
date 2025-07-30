@@ -1,19 +1,13 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import axios from "axios";
 import profile from "@/assets/muhammadAli.jpg";
-import UserChat from "../Chat/UserChat";
 import Friends from "../Friends/Friends";
 const ListLayout = () => {
   let value: number = 1;
-  console.log(value);
   const test: number[] = [1, 2, 3];
   const fetchAllFriendsData = async (value: number) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8080/api/user/friend/${value}`
-      );
-      const data = response.data;
-      console.log(data);
+      await axios.get(`http://localhost:8080/api/user/friend/${value}`);
     } catch (error) {
       console.log(error);
     }

@@ -10,15 +10,6 @@ interface sendUser {
   receiverId: number;
 }
 
-interface notification {
-  convertationId: number;
-  senderId: number;
-  receiverId: number;
-  message: string;
-  isSeen: boolean;
-  isUnsend: boolean;
-}
-
 interface ContentLayoutProps {
   client: Client;
   menu: string;
@@ -40,12 +31,14 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
   profileUser,
   setMenu,
 }) => {
-  const [convertationId, setConvertationId] = useState<number | null>(null);
+  const [convertationId, setConvertationId] = useState<number | undefined>(
+    undefined
+  );
   const [pinnedMessage, setPinnedMessage] = useState<userChat[]>();
   const [unPinnedMessage, setUnPinnedMessage] = useState<userChat[]>();
   const [sendUser, setSendUser] = useState<sendUser | null>(null);
   const [messages, setMessages] = useState<userMessage[]>([]);
-  const [typeConvertation, setTypeConvertation] = useState<string | null>(null);
+  const [typeConvertation, setTypeConvertation] = useState<string>("");
   const [name, setName] = useState<string | null>(null);
   const [member, setMember] = useState<number | null>(null);
   const [isGroup, setIsGroup] = useState<boolean>(false);
@@ -82,19 +75,15 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
   const sortingMessage = (incomingMessage: userMessage) => {
     const currentUnPinned = unPinnedMessageRef.current;
-    console.log(currentUnPinned);
 
     if (!currentUnPinned) return;
 
-    console.log("Incoming Message:", incomingMessage);
-    console.log("Current Unpinned:", currentUnPinned);
     let isSaved = false;
     const upadateMessage = currentUnPinned.map((chat) => {
       if (
         chat.conversationId === incomingMessage.convertationId &&
         chat.isGroup === incomingMessage.isGroup
       ) {
-        console.log("masuk sini ngga?");
         isSaved = true;
         let amountUnseenMessage = chat.unSeenMessage;
         if (convertationIdRef.current == incomingMessage.convertationId) {
@@ -119,6 +108,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
           },
         } as userChat;
       }
+
       return chat;
     });
 
@@ -131,12 +121,17 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     setUnPinnedMessage(sorted);
   };
 
-  const addConversation = (conversation: userChat) => {
+  const addConversation = (conversation: userChat, type: string) => {
     let typeConvertation: string = "TEXT";
     let profile: string = "";
     if (conversation.isGroup) {
       typeConvertation = "GROUP";
     }
+
+    let receiverUser: sendUser = {
+      convertationId: conversation.conversationId,
+      receiverId: conversation.id,
+    };
 
     if (!conversation.pinned) {
       if (!unPinnedMessageRef.current) return;
@@ -153,14 +148,17 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
       profile = conversation.profileImage.image;
     }
 
-    getConvertation(
-      conversation.conversationId,
-      typeConvertation,
-      conversation.name,
-      conversation.isGroup,
-      conversation.memberGroup,
-      profile
-    );
+    if (type == "GETCONVERSATION") {
+      getConvertation(
+        conversation.conversationId,
+        typeConvertation,
+        conversation.name,
+        conversation.isGroup,
+        conversation.memberGroup,
+        profile,
+        receiverUser
+      );
+    }
   };
 
   const getConvertation = (
@@ -169,7 +167,8 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     name: string,
     isGroup: boolean,
     member: number,
-    profile: string
+    profile: string,
+    sendUser: sendUser
   ) => {
     setConvertationId(convertationId);
     setMenu("chat");
@@ -178,6 +177,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     setIsGroup(isGroup);
     setMember(member);
     setProfile(profile);
+    setSendUser(sendUser);
   };
 
   const sortedMsg = (unSortedMsg: userChat[]) => {
@@ -191,9 +191,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     if (!isPinned) {
       const currentUnPinned = unPinnedMessageRef.current;
       if (!currentUnPinned) return;
-
-      console.log(conversationIdSocket);
-      console.log(convertationIdRef);
 
       const newUnPinnedMessage = currentUnPinned?.map((message) => {
         if (message.conversationId === conversationIdSocket) {
@@ -225,8 +222,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
     const currentMessages = messagesRef.current;
     if (!currentMessages) return;
-
-    console.log(currentMessages);
 
     setMessages((prevMessages) => {
       return prevMessages.map((message) => {
@@ -300,7 +295,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     if (unPinnedMessage) {
       unPinnedMessageRef.current = unPinnedMessage;
     }
-    console.log(unPinnedMessage);
   }, [unPinnedMessage]);
 
   useEffect(() => {
@@ -322,23 +316,16 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
   }, [convertationId]);
 
   useEffect(() => {
-    console.log(convertationId + " ini adalah convernya");
-  }, [convertationId]);
-
-  useEffect(() => {
     const subscriptionUser = client.subscribe(
       `/topic/${profileUser.id}`,
       (response: any) => {
         const parsedResponse: any = JSON.parse(response.body);
 
         console.log(parsedResponse);
-
         if (parsedResponse.type === "MESSAGE") {
           const messageResponse: userMessage = parsedResponse.message;
-          console.log(messageResponse);
+
           sortingMessage(messageResponse);
-          console.log(convertationIdRef);
-          console.log(convertationId);
 
           if (messageResponse.convertationId != convertationIdRef.current) {
             return;
@@ -359,10 +346,11 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
           }
         }
 
-        if (parsedResponse.type === "SEENMESSAGE") {
-          console.log(parsedResponse);
-          console.log("udah masuk seenmessage");
+        if (parsedResponse.type === "NEWCHATCONVERSATION") {
+          addConversation(parsedResponse.newUserChat, parsedResponse.type);
+        }
 
+        if (parsedResponse.type === "SEENMESSAGE") {
           if (parsedResponse.isGroup === "TEXT") {
             seenMessageText(
               parsedResponse.conversationId,
@@ -392,6 +380,11 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
             if (messageResponse.isGroup) {
               typeConvertation = "GROUP";
             }
+
+            let receiverUser: sendUser = {
+              convertationId: messageResponse.conversationId,
+              receiverId: messageResponse.id,
+            };
             // jika ada fitur delete, maka perlu di check chatconvertationnya sudah didelete atau blm
             getConvertation(
               messageResponse.conversationId,
@@ -399,21 +392,19 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
               messageResponse.name,
               messageResponse.isGroup,
               messageResponse.memberGroup,
-              profile
+              profile,
+              receiverUser
             );
             return;
           }
-          addConversation(messageResponse);
+          addConversation(messageResponse, parsedResponse.type);
         }
       }
     );
 
     const subscriptionCommon = client.subscribe(
       `/topic/common`,
-      (response: any) => {
-        const parsedResponse: notification = JSON.parse(response.body);
-        console.log("Received:", parsedResponse);
-      }
+      (response: any) => {}
     );
 
     return () => {
@@ -431,8 +422,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
         }
       );
       const data = response.data.data;
-
-      console.log(data);
 
       const unPinned: userChat[] = data.unPinned.map((item: userChat) => ({
         id: item.id,
@@ -478,7 +467,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     if (profileUser.id != null) {
       fetchAllFriendsData(profileUser.id);
     }
-    console.log(convertationId);
   }, [profile]);
 
   useEffect(() => {
@@ -514,7 +502,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
         image: message.image,
         isImage: message.isImage,
       }));
-      console.log("kesini terus nih");
 
       setMessages(message);
     } catch (error: any) {
@@ -591,9 +578,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
       return;
     }
 
-    console.log(unSeenMessage);
-    console.log(convertationId + " ini covertation");
-
     const payload = {
       conversationId: convertationId,
       userId: profileUser.id,
@@ -621,6 +605,8 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
           menu={menu}
           contactNotif={contactNotif}
           client={client}
+          convertationId={convertationId}
+          typeConvertation={typeConvertation}
         />
       </div>
       {/* Isi chat friend or group */}

@@ -41,7 +41,7 @@ const Home = () => {
         withCredentials: true,
       });
       const profileUser: userProfile = response.data.data;
-      console.log(profileUser);
+
       setUserId(profileUser.id);
       setProfile(profileUser);
     } catch (error) {
@@ -64,19 +64,15 @@ const Home = () => {
 
         client.subscribe(`/topic/${profile?.id}`, (response: any) => {
           const parsedResponse: any = JSON.parse(response.body);
-          console.log(parsedResponse);
 
           if (parsedResponse.type === "ADDEDFRIEND") {
             const userProfile: userProfile = parsedResponse.userProfile;
 
             if (parsedResponse.addedBy == profile?.id) {
               if (friendRequesRef.current) {
-                console.log(friendRequesRef.current);
-
                 const newFriendRequest = friendRequesRef.current.filter(
                   (fr) => fr.id !== userProfile.id
                 );
-                console.log(newFriendRequest);
 
                 setFriendRequest(newFriendRequest);
               }
@@ -100,7 +96,6 @@ const Home = () => {
             }
 
             const coba: userProfile[] = [...friendRequest, userProfile];
-            console.log(coba);
 
             setFriendRequest(coba);
           }
@@ -147,7 +142,6 @@ const Home = () => {
       });
 
       setFriend(response.data.data);
-      console.log(response.data.data);
     } catch (error) {
       console.log(error);
     }
@@ -160,7 +154,6 @@ const Home = () => {
       });
 
       setGroup(response.data.data);
-      console.log(response);
     } catch (error) {
       console.log(error);
     }

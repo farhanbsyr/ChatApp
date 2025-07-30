@@ -7,7 +7,6 @@ import { ScrollArea } from "../ui/scroll-area";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
@@ -55,11 +54,6 @@ const ContactContent: React.FC<ContactContentProps> = ({
       : group?.filter((userGroup: group) => {
           return userGroup.name.toLowerCase().includes(search.toLowerCase());
         });
-
-  useEffect(() => {
-    console.log(friend);
-    console.log(friendRequest);
-  }, [friend, friendRequest]);
 
   const filteredFriend: userProfile[] =
     search.trim() === ""
@@ -166,20 +160,21 @@ const ContactContent: React.FC<ContactContentProps> = ({
                         />
                       </div>
                     </DialogTrigger>
-                    <DialogContent className="w-[350px]">
+                    <DialogContent
+                      className="w-[350px]"
+                      aria-describedby={undefined}
+                    >
                       <DialogTitle className="hidden "></DialogTitle>
-                      <DialogDescription>
-                        <ContactProfile
-                          userId={profileUser.id}
-                          client={client}
-                          name={usergroup.name}
-                          status={usergroup.description}
-                          profileImage={usergroup.profileImage}
-                          phoneNumber={usergroup.member}
-                          friendId={usergroup.id}
-                          isGroup={true}
-                        />
-                      </DialogDescription>
+                      <ContactProfile
+                        userId={profileUser.id}
+                        client={client}
+                        name={usergroup.name}
+                        status={usergroup.description}
+                        profileImage={usergroup.profileImage}
+                        phoneNumber={usergroup.member}
+                        friendId={usergroup.id}
+                        isGroup={true}
+                      />
                     </DialogContent>
                   </Dialog>
                 );
@@ -226,20 +221,21 @@ const ContactContent: React.FC<ContactContentProps> = ({
                       />
                     </div>
                   </DialogTrigger>
-                  <DialogContent className="w-[350px]">
+                  <DialogContent
+                    className="w-[350px]"
+                    aria-describedby={undefined}
+                  >
                     <DialogTitle className="hidden"></DialogTitle>
-                    <DialogDescription>
-                      <ContactProfile
-                        userId={profileUser.id}
-                        client={client}
-                        name={userFriend.name}
-                        status={"Available"}
-                        profileImage={userFriend.profileImage}
-                        phoneNumber={userFriend.phoneNumber}
-                        friendId={userFriend.id}
-                        isGroup={false}
-                      />
-                    </DialogDescription>
+                    <ContactProfile
+                      userId={profileUser.id}
+                      client={client}
+                      name={userFriend.name}
+                      status={"Available"}
+                      profileImage={userFriend.profileImage}
+                      phoneNumber={userFriend.phoneNumber}
+                      friendId={userFriend.id}
+                      isGroup={false}
+                    />
                   </DialogContent>
                 </Dialog>
               ))}

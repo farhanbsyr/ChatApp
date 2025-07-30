@@ -15,6 +15,8 @@ interface ChatContentProps {
   // onSeenMessage: any;
   userId: number;
   client: Client;
+  convertationId?: number;
+  typeConvertation: string;
 }
 
 const ChatContent: React.FC<ChatContentProps> = ({
@@ -23,8 +25,9 @@ const ChatContent: React.FC<ChatContentProps> = ({
   pinnedMessage,
   unPinnedMessage,
   userId,
+  typeConvertation,
+  convertationId,
 }) => {
-  const [selected, setSelected] = useState<string>("");
   const [keyword, setKeyword] = useState<string>("");
   const now = new Date();
   const nowToday = now.getDate();
@@ -46,9 +49,6 @@ const ChatContent: React.FC<ChatContentProps> = ({
     if (unSeenMessage == 0) {
       return;
     }
-
-    console.log(unSeenMessage);
-    console.log(convertationId + " ini covertation");
 
     const payload = {
       conversationId: convertationId,
@@ -163,8 +163,6 @@ const ChatContent: React.FC<ChatContentProps> = ({
                 isGroup = "TEXT";
               }
 
-              let key = item.isGroup ? item.id + isGroup + "" : item.id + "";
-
               let sendUser: sendUser = {
                 convertationId: item.conversationId,
                 receiverId: item.id,
@@ -177,9 +175,11 @@ const ChatContent: React.FC<ChatContentProps> = ({
                   ? avatarGroup
                   : avatarUser;
 
+              let typeConvertationUser = item.isGroup ? "GROUP" : "TEXT";
+
               return (
                 <div
-                  key={item.isGroup ? item.id + isGroup : item.id}
+                  key={item.isGroup ? item.id + "GROUP" : item.id}
                   onClick={() => {
                     changeConvertation(
                       item.conversationId,
@@ -195,11 +195,13 @@ const ChatContent: React.FC<ChatContentProps> = ({
                       item.conversationId,
                       isGroup
                     );
-                    setSelected(
-                      item.isGroup ? item.id + isGroup + "" : item.id + ""
-                    );
                   }}
-                  className={selected == key ? "bg-blue-50" : ""}
+                  className={
+                    item.conversationId == convertationId &&
+                    typeConvertationUser == typeConvertation
+                      ? "bg-blue-50 rounded-sm"
+                      : "bg-white"
+                  }
                 >
                   <UserChat
                     name={item.name}

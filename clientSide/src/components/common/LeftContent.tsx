@@ -8,6 +8,8 @@ interface LeftContentProps {
   onChangeConvertation: any;
   pinnedMessage?: userChat[];
   unPinnedMessage?: userChat[];
+  convertationId?: number;
+  typeConvertation: string;
   // onSeenMessage: any;
   menu: string;
   profileUser: userProfile;
@@ -28,12 +30,16 @@ const LeftContent: React.FC<LeftContentProps> = ({
   group,
   menu,
   client,
+  convertationId,
+  typeConvertation,
 }) => {
   return (
     <>
       <div className="relative flex flex-col h-full">
         {menu.toLowerCase() === "chat" ? (
           <ChatContent
+            convertationId={convertationId}
+            typeConvertation={typeConvertation}
             userId={profileUser.id}
             client={client}
             unPinnedMessage={unPinnedMessage}

@@ -75,9 +75,9 @@ const ContactProfile: React.FC<ContactProfileProps> = ({
       <div className="w-full bg-gray-200 h-[5px] rounded-l-sm"></div>
       {/* perincian perincian */}
       <div className="mb-2 text-center bg-white ">
-        <h5 className="text-base text-gray-500 ">
+        <p className="text-base text-gray-500 ">
           {isGroup ? "Description" : "Status"}
-        </h5>
+        </p>
         <p className="text-sm leading-4 ">{status}</p>
       </div>
       <div
