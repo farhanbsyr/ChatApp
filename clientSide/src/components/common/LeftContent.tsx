@@ -10,7 +10,6 @@ interface LeftContentProps {
   unPinnedMessage?: userChat[];
   convertationId?: number;
   typeConvertation: string;
-  // onSeenMessage: any;
   menu: string;
   profileUser: userProfile;
   contactNotif: any;

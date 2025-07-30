@@ -102,7 +102,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
   const changeConvertation = (
     id: number,
     type: string,
-    name: string,
+    name: string | number,
     member: number,
     sendUser: sendUser,
     isGroup: boolean,
@@ -175,6 +175,10 @@ const ChatContent: React.FC<ChatContentProps> = ({
                   ? avatarGroup
                   : avatarUser;
 
+              let userName = item.userFriends
+                ? item.name
+                : item.handphoneNumber;
+
               let typeConvertationUser = item.isGroup ? "GROUP" : "TEXT";
 
               return (
@@ -184,7 +188,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
                     changeConvertation(
                       item.conversationId,
                       isGroup,
-                      item.name,
+                      userName,
                       item.memberGroup,
                       sendUser,
                       item.isGroup,
@@ -204,7 +208,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
                   }
                 >
                   <UserChat
-                    name={item.name}
+                    name={userName}
                     profileImage={userProfile}
                     lastMessage={item.lastMessage}
                     unSeenMessage={item.unSeenMessage}

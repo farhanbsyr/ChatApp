@@ -9,11 +9,12 @@ import { userMessage } from "@/types";
 import EmojiPicker from "emoji-picker-react";
 import { VscSmiley } from "react-icons/vsc";
 import { IoIosSend } from "react-icons/io";
+import { ScrollAreaViewport } from "@radix-ui/react-scroll-area";
 
 interface RightContentProps {
   userId: number;
   sendMessage: any;
-  name: string | null;
+  name: string | number | null;
   member: number | null;
   messages: userMessage[];
   isGroup: boolean;
@@ -54,47 +55,49 @@ const RightContent: React.FC<RightContentProps> = ({
       )}
 
       <ScrollArea className="flex flex-col h-full gap-2">
-        {messages.map((value) => {
-          let positionMsg = "justify-start";
+        <ScrollAreaViewport>
+          {messages.map((value) => {
+            let positionMsg = "justify-start";
 
-          const date = new Date(value.createdOn);
+            const date = new Date(value.createdOn);
 
-          const localTime = date.toLocaleString("en-GB", {
-            timeZone: "Asia/Jakarta",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: false,
-          });
+            const localTime = date.toLocaleString("en-GB", {
+              timeZone: "Asia/Jakarta",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            });
 
-          const formattedTime = localTime.substring(12, 17);
+            const formattedTime = localTime.substring(12, 17);
 
-          if (value.senderId == userId) {
-            positionMsg = "justify-end";
-          }
+            if (value.senderId == userId) {
+              positionMsg = "justify-end";
+            }
 
-          return (
-            <div
-              key={`${value.id} + ${value.isGroup ? "group" : "text"}`}
-              className={`flex ${positionMsg} `}
-            >
-              <Chat
-                isImage={value.isImage}
-                name={value.name}
-                time={formattedTime}
-                message={value.message}
-                isSeen={value.isSeen}
-                showedGrup={value.isGroup}
-                profile={value.image}
-                member={member}
-                seen={value.seen}
-              />
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={`${value.id} + ${value.isGroup ? "group" : "text"}`}
+                className={`flex ${positionMsg} `}
+              >
+                <Chat
+                  isImage={value.isImage}
+                  name={value.name}
+                  time={formattedTime}
+                  message={value.message}
+                  isSeen={value.isSeen}
+                  showedGrup={value.isGroup}
+                  profile={value.image}
+                  member={member}
+                  seen={value.seen}
+                />
+              </div>
+            );
+          })}
+        </ScrollAreaViewport>
       </ScrollArea>
       {/* <Chat /> */}
       <form

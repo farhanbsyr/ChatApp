@@ -17,6 +17,10 @@ interface ContentLayoutProps {
   contactNotif: any;
   friendRequest: userProfile[];
   friend: userProfile[];
+  unPinnedMessage?: userChat[];
+  pinnedMessage?: userChat[];
+  setPinnedMessage: any;
+  setUnPinnedMessage: any;
   group: group[];
   setMenu: any;
 }
@@ -30,16 +34,20 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
   menu,
   profileUser,
   setMenu,
+  unPinnedMessage,
+  pinnedMessage,
+  setPinnedMessage,
+  setUnPinnedMessage,
 }) => {
   const [convertationId, setConvertationId] = useState<number | undefined>(
     undefined
   );
-  const [pinnedMessage, setPinnedMessage] = useState<userChat[]>();
-  const [unPinnedMessage, setUnPinnedMessage] = useState<userChat[]>();
+  // const [pinnedMessage, setPinnedMessage] = useState<userChat[]>();
+  // const [unPinnedMessage, setUnPinnedMessage] = useState<userChat[]>();
   const [sendUser, setSendUser] = useState<sendUser | null>(null);
   const [messages, setMessages] = useState<userMessage[]>([]);
   const [typeConvertation, setTypeConvertation] = useState<string>("");
-  const [name, setName] = useState<string | null>(null);
+  const [name, setName] = useState<string | number | null>(null);
   const [member, setMember] = useState<number | null>(null);
   const [isGroup, setIsGroup] = useState<boolean>(false);
   const [profile, setProfile] = useState<string>("");
@@ -52,7 +60,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
   const changeConvertation = (
     convertation: number,
     type: string,
-    name: string,
+    name: string | number,
     member: number,
     sendUser: sendUser,
     isGroup: boolean,
@@ -114,11 +122,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
     // buat userChat masukkan incoming message 1 per 1 lalu update ke updateMessage
 
-    const sorted = [...upadateMessage].sort((a, b) => {
-      return new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime();
-    });
-
-    setUnPinnedMessage(sorted);
+    setUnPinnedMessage(sortedMsg(upadateMessage));
   };
 
   const addConversation = (conversation: userChat, type: string) => {
@@ -321,7 +325,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
       (response: any) => {
         const parsedResponse: any = JSON.parse(response.body);
 
-        console.log(parsedResponse);
         if (parsedResponse.type === "MESSAGE") {
           const messageResponse: userMessage = parsedResponse.message;
 
@@ -413,61 +416,62 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     };
   }, [client, profileUser]);
 
-  const fetchAllFriendsData = async (idUser: number) => {
-    try {
-      const response = await api.get(
-        `http://localhost:8080/api/chat/${idUser}`,
-        {
-          withCredentials: true,
-        }
-      );
-      const data = response.data.data;
+  // const fetchAllFriendsData = async (idUser: number) => {
+  //   try {
+  //     const response = await api.get(
+  //       `http://localhost:8080/api/chat/${idUser}`,
+  //       {
+  //         withCredentials: true,
+  //       }
+  //     );
+  //     const data = response.data.data;
 
-      const unPinned: userChat[] = data.unPinned.map((item: userChat) => ({
-        id: item.id,
-        name: item.name,
-        email: item.email,
-        handphoneNumber: item.handphoneNumber,
-        profileImage: item.profileImage,
-        lastMessage: item.lastMessage,
-        userFriends: item.userFriends,
-        pinned: item.pinned,
-        isGroup: item.isGroup,
-        createdOn: item.createdOn,
-        conversationId: item.conversationId,
-        userGroup: item.userGroupId,
-        memberGroup: item.memberGroup,
-        unSeenMessage: item.unSeenMessage,
-      }));
-      setUnPinnedMessage(sortedMsg(unPinned));
+  //     const unPinned: userChat[] = data.unPinned.map((item: userChat) => ({
+  //       id: item.id,
+  //       name: item.name,
+  //       email: item.email,
+  //       handphoneNumber: item.handphoneNumber,
+  //       profileImage: item.profileImage,
+  //       lastMessage: item.lastMessage,
+  //       userFriends: item.userFriends,
+  //       pinned: item.pinned,
+  //       isGroup: item.isGroup,
+  //       createdOn: item.createdOn,
+  //       conversationId: item.conversationId,
+  //       userGroup: item.userGroupId,
+  //       memberGroup: item.memberGroup,
+  //       unSeenMessage: item.unSeenMessage,
+  //     }));
+  //     setUnPinnedMessage(sortedMsg(unPinned));
 
-      const pinned: userChat[] = data.pinned.map((item: userChat) => ({
-        id: item.id,
-        name: item.name,
-        email: item.email,
-        handphoneNumber: item.handphoneNumber,
-        profileImage: item.profileImage,
-        lastMessage: item.lastMessage,
-        userFriends: item.userFriends,
-        pinned: item.pinned,
-        isGroup: item.isGroup,
-        createdOn: item.createdOn,
-        conversationId: item.conversationId,
-        userGroup: item.userGroupId,
-        memberGroup: item.memberGroup,
-        unSeenMessage: item.unSeenMessage,
-      }));
-      setPinnedMessage(sortedMsg(pinned));
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //     const pinned: userChat[] = data.pinned.map((item: userChat) => ({
+  //       id: item.id,
+  //       name: item.name,
+  //       email: item.email,
+  //       handphoneNumber: item.handphoneNumber,
+  //       profileImage: item.profileImage,
+  //       lastMessage: item.lastMessage,
+  //       userFriends: item.userFriends,
+  //       pinned: item.pinned,
+  //       isGroup: item.isGroup,
+  //       createdOn: item.createdOn,
+  //       conversationId: item.conversationId,
+  //       userGroup: item.userGroupId,
+  //       memberGroup: item.memberGroup,
+  //       unSeenMessage: item.unSeenMessage,
+  //     }));
+  //     setPinnedMessage(sortedMsg(pinned));
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
-  useEffect(() => {
-    if (profileUser.id != null) {
-      fetchAllFriendsData(profileUser.id);
-    }
-  }, [profile]);
+  // useEffect(() => {
+  //   if (profileUser.id != null) {
+  //     fetchAllFriendsData(profileUser.id);
+  //   }
+  //   console.log("apakah akan berubah terus?" + profile);
+  // }, [profileUser]);
 
   useEffect(() => {
     if (convertationId != null) {

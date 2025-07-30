@@ -4,7 +4,7 @@ import { LastMessage } from "../../types";
 import { Image } from "lucide-react";
 
 interface UserChatProps {
-  name: string;
+  name: string | number;
   profileImage: string;
   lastMessage?: LastMessage | null;
   pinned: boolean;

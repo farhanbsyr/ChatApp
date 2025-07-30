@@ -4,10 +4,12 @@ import api from "@/api/axiosApi";
 import AutoLogout from "@/hooks/AutoLogout";
 import ContentLayout from "@/components/common/ContentLayout";
 import { Client } from "@stomp/stompjs";
-import { group, userProfile } from "@/types";
+import { group, userChat, userProfile } from "@/types";
 
 const Home = () => {
   const [userId, setUserId] = useState<number | null>(null);
+  const [pinnedMessage, setPinnedMessage] = useState<userChat[]>();
+  const [unPinnedMessage, setUnPinnedMessage] = useState<userChat[]>();
   const [menu, setMenu] = useState<string>("chat");
   const [connectedClient, setConnectedClient] = useState<Client | null>(null);
   const [profile, setProfile] = useState<userProfile>();
@@ -20,6 +22,8 @@ const Home = () => {
   };
   const friendRef = useRef<userProfile[]>();
   const friendRequesRef = useRef<userProfile[]>();
+  const unPinnedMessageRef = useRef<userChat[]>();
+  const pinnedMessageRef = useRef<userChat[]>();
 
   useEffect(() => {
     if (friend) {
@@ -32,6 +36,18 @@ const Home = () => {
       friendRequesRef.current = friendRequest;
     }
   }, [friendRequest]);
+
+  useEffect(() => {
+    if (pinnedMessage) {
+      pinnedMessageRef.current = pinnedMessage;
+    }
+  }, [pinnedMessage]);
+
+  useEffect(() => {
+    if (unPinnedMessage) {
+      unPinnedMessageRef.current = unPinnedMessage;
+    }
+  }, [unPinnedMessage]);
 
   AutoLogout();
 
@@ -52,6 +68,23 @@ const Home = () => {
   useEffect(() => {
     getProfileUser();
   }, []);
+
+  const changeSavedFriend = (friendId: number) => {
+    if (unPinnedMessageRef.current == null) return;
+
+    const changeFriendName = unPinnedMessageRef.current?.map((msg) => {
+      if (msg.id == friendId && !msg.isGroup) {
+        return {
+          ...msg,
+          userFriends: true,
+        };
+      }
+
+      return msg;
+    });
+
+    setUnPinnedMessage(sortedMsg(changeFriendName));
+  };
 
   useEffect(() => {
     if (userId == null) return;
@@ -76,6 +109,8 @@ const Home = () => {
 
                 setFriendRequest(newFriendRequest);
               }
+
+              changeSavedFriend(userProfile.id);
 
               if (friendRef.current) {
                 const newFriend: userProfile[] = [
@@ -165,6 +200,70 @@ const Home = () => {
     getUserGroup();
   }, []);
 
+  const sortedMsg = (unSortedMsg: userChat[]) => {
+    const sorted = [...unSortedMsg].sort((a, b) => {
+      return new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime();
+    });
+    return sorted;
+  };
+
+  const fetchAllFriendsData = async (idUser: number) => {
+    try {
+      const response = await api.get(
+        `http://localhost:8080/api/chat/${idUser}`,
+        {
+          withCredentials: true,
+        }
+      );
+      const data = response.data.data;
+
+      const unPinned: userChat[] = data.unPinned.map((item: userChat) => ({
+        id: item.id,
+        name: item.name,
+        email: item.email,
+        handphoneNumber: item.handphoneNumber,
+        profileImage: item.profileImage,
+        lastMessage: item.lastMessage,
+        userFriends: item.userFriends,
+        pinned: item.pinned,
+        isGroup: item.isGroup,
+        createdOn: item.createdOn,
+        conversationId: item.conversationId,
+        userGroup: item.userGroupId,
+        memberGroup: item.memberGroup,
+        unSeenMessage: item.unSeenMessage,
+      }));
+      setUnPinnedMessage(sortedMsg(unPinned));
+
+      const pinned: userChat[] = data.pinned.map((item: userChat) => ({
+        id: item.id,
+        name: item.name,
+        email: item.email,
+        handphoneNumber: item.handphoneNumber,
+        profileImage: item.profileImage,
+        lastMessage: item.lastMessage,
+        userFriends: item.userFriends,
+        pinned: item.pinned,
+        isGroup: item.isGroup,
+        createdOn: item.createdOn,
+        conversationId: item.conversationId,
+        userGroup: item.userGroupId,
+        memberGroup: item.memberGroup,
+        unSeenMessage: item.unSeenMessage,
+      }));
+      setPinnedMessage(sortedMsg(pinned));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (profile != null) {
+      fetchAllFriendsData(profile.id);
+    }
+    console.log("apakah akan berubah terus?" + profile);
+  }, [profile]);
+
   return (
     <div className="flex flex-row h-full py-2 mb-2 bg-stone-950">
       <div className="h-full">
@@ -176,6 +275,10 @@ const Home = () => {
       {profile != null && connectedClient ? (
         <div className="w-full h-full bg-white rounded-3xl ">
           <ContentLayout
+            pinnedMessage={pinnedMessage}
+            unPinnedMessage={unPinnedMessage}
+            setPinnedMessage={setPinnedMessage}
+            setUnPinnedMessage={setUnPinnedMessage}
             friendRequest={friendRequest}
             friend={friend}
             group={group}

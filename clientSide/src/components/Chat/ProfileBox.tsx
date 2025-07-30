@@ -1,14 +1,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ProfileBoxProps {
-  name: string | null;
+  name: string | null | number;
   member: number | null;
   profile?: string;
 }
 
 const ProfileBox: React.FC<ProfileBoxProps> = ({ name, member, profile }) => {
   return (
-    <div className="flex flex-row items-center gap-[10px]">
+    <div className="flex flex-row items-center gap-[10px] h-[75px] border-b border-gray-100 shadow-sm">
       {profile != null ? (
         <Avatar className="w-9 h-9">
           <AvatarImage width={28} src={profile} />
