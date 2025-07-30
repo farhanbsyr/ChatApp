@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.portofolio.talkify.DTO.LoginDTO;
 import com.portofolio.talkify.modal.User;
 import com.portofolio.talkify.service.AuthService;
+import com.portofolio.talkify.utility.ApiResponse;
+import com.portofolio.talkify.utility.ResponseUtil;
 
 @RestController
 @CrossOrigin("*")
@@ -30,8 +32,13 @@ public class ApiAuthController {
     }
 
     @PostMapping("/register")
-    public Object userRegister(@RequestBody User user){
-        return authService.register(user);
+    public ResponseEntity<ApiResponse<String>> userRegister(@RequestBody User user){
+        try {
+            authService.register(user);
+            return ResponseUtil.generateSuccessResponse("Success to register user", null, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return ResponseUtil.generateErrorResponse("Failed to register", e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/logout")
