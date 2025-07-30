@@ -29,8 +29,6 @@ public class TokenService {
         if (cookies != null) {
            
             for (Cookie cookie : cookies){
-                System.out.println("Nama Cookie: " + cookie.getName());
-                System.out.println("Value: " + cookie.getValue());
                 if (cookie.getName().equals("refresh_token")) {
                     refreshToken = cookie.getValue();
                     break;

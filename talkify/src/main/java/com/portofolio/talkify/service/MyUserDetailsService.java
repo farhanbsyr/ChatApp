@@ -23,9 +23,7 @@ public class MyUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
         UserLoginProjection user = userRepository.findUserByEmailOrNumber(identifier);
 
-        System.out.println(user);
         if (user == null) {
-            System.out.println("User is not found");
             throw new UsernameNotFoundException("User is not found");
         }
 

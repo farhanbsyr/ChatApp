@@ -70,27 +70,36 @@ public class WebSocketController {
         if (notificationUser.getMessageTYPE() == MessageTYPE.TEXT) {
             UserConvertation userConvertation = userConvertaionRepository.findById(notificationUser.getConvertationId()).orElse(null);
             ChatConvertation chatFriendConvertation = chatConvertationRepository.findByUserConvertationIdAndUserId(notificationUser.getConvertationId(), notificationUser.getReceiverId());
-            
+            boolean isNewConvertation = false;
+
             if (chatFriendConvertation == null) {
-                ChatConvertation newbgt = chatService.createChatConvertation(notificationUser.getReceiverId(), notificationUser.getConvertationId());
-                chatFriendConvertation = chatConvertationRepository.save(newbgt);
+                ChatConvertation newChatConvertation = chatService.createChatConvertation(notificationUser.getReceiverId(), notificationUser.getConvertationId());
+                chatFriendConvertation = chatConvertationRepository.save(newChatConvertation);
+                isNewConvertation = true;
             }
 
             List<ChatConvertation> chatConvertations = chatConvertationRepository.findByUserConvertationId(userConvertation.getId());
-
             User user = userRepository.findById(notificationUser.getReceiverId()).orElse(null);
+
             if (user == null ) {
                 response.put("type", NotificationTYPE.FAILED);
                 response.put("message", "Receiver is not found");
                 simpMessagingTemplate.convertAndSend("/topic/" + notificationUser.getSenderId() , response);
-            } else{
-                response.put("message", chatService.saveMessageText(notificationUser));
-                response.put("type", NotificationTYPE.MESSAGE);
-                for (ChatConvertation chatConvertation : chatConvertations) {
-                    response.put("isPinned", chatConvertation.getIsPINNED());
-                    simpMessagingTemplate.convertAndSend("/topic/" + chatConvertation.getUserId() , response);
-                }
+                return;
             }
+            Object message = chatService.saveMessageText(notificationUser);
+            for (ChatConvertation chatConvertation : chatConvertations) {
+                if (isNewConvertation && chatConvertation.getUserId() == notificationUser.getReceiverId()) {
+                    response.put("newUserChat", chatService.getUserChat(notificationUser.getReceiverId(), chatConvertation, chatConvertation.getIsPINNED()));
+                    response.put("type", NotificationTYPE.NEWCHATCONVERSATION);
+                } else{
+                    response.put("message", message);
+                    response.put("type", NotificationTYPE.MESSAGE);
+                }
+                response.put("isPinned", chatConvertation.getIsPINNED());
+                simpMessagingTemplate.convertAndSend("/topic/" + chatConvertation.getUserId() , response);
+            }
+
         } else {
             Group group = groupRepository.findById(notificationUser.getConvertationId()).orElse(null);
             // UserConvertation userConvertation = userConvertaionRepository.findById(notificationUser.getConvertationId()).orElse(null);
@@ -115,12 +124,7 @@ public class WebSocketController {
     public void enterMessage(NotificationSeen notificationSeen){
         Map<String, Object> response = new HashMap<>();
         // ArrayList<Object> listResponse = new ArrayList<>();
-        System.out.println("masuk ngga?");
-        System.out.println(notificationSeen.getMessageTYPE());
-        System.out.println(notificationSeen.getConversationId());
-        System.out.println(notificationSeen.getUserId());
         if (notificationSeen.getMessageTYPE() == MessageTYPE.TEXT) {
-            System.out.println("step2");
             List<UserMessage> listMessageFalse = userMessageRepository.listFalseMessage(notificationSeen.getConversationId(), notificationSeen.getUserId());
             UserConvertation userConvertation = userConvertaionRepository.findById(notificationSeen.getConversationId()).orElse(null);
             
@@ -130,14 +134,12 @@ public class WebSocketController {
                 simpMessagingTemplate.convertAndSend("/topic/" + notificationSeen.getUserId() , response);
                 return;
             }
-            System.out.println("Step3");
             List<ChatConvertation> chatConvertations = chatConvertationRepository.findByUserConvertationId(userConvertation.getId());
 
             for (UserMessage userMessage : listMessageFalse) {
                 // Map<String, Object> responObj = new HashMap<>();
                 userMessage.setIsSeen(true);
                 userMessageRepository.save(userMessage);
-                System.out.println("step4");
                 // responObj.put("messageId", userMessage.getId());
                 // responObj.put("isSeen", userMessage.getIsSeen());
                 
@@ -225,7 +227,7 @@ public class WebSocketController {
                 ChatConvertation chatConvertation = chatConvertationRepository.findByUserConvertationIdAndUserId(checkConvertation.getId(), userId);
                 response.put("isPinned", chatConvertation.getIsPINNED());
                 response.put("type", NotificationTYPE.GETCONVERSATION);
-                response.put("conversation", chatService.getUserChat(userId, checkConvertation, chatConvertation.getIsPINNED()));
+                response.put("conversation", chatService.getUserChat(userId, chatConvertation, chatConvertation.getIsPINNED()));
                 response.put("isSaved", true);
                 simpMessagingTemplate.convertAndSend("/topic/" + userId , response);
                 return;
@@ -243,11 +245,11 @@ public class WebSocketController {
             // 
             // nanti tambahin ketika send meesage kalo chatconvertation dari temennya belum ada berati harus dibuatkan dulu
             
-            chatConvertationRepository.save(newChatConvertation1);
+            ChatConvertation savedChatConvertation = chatConvertationRepository.save(newChatConvertation1);
             
             response.put("isPinned", false);
             response.put("type", NotificationTYPE.GETCONVERSATION);
-            response.put("conversation", chatService.getUserChat(userId, savedUserConvertation, false));
+            response.put("conversation", chatService.getUserChat(userId, savedChatConvertation, false));
             response.put("isSaved", false);
             simpMessagingTemplate.convertAndSend("/topic/" + userId, response);
             return;

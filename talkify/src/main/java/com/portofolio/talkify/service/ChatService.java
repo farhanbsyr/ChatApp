@@ -23,6 +23,7 @@ import com.portofolio.talkify.modal.UserMessage;
 import com.portofolio.talkify.repository.DeleteMessageRepository;
 import com.portofolio.talkify.repository.GroupMessageRepository;
 import com.portofolio.talkify.repository.GroupRepository;
+import com.portofolio.talkify.repository.UserConvertaionRepository;
 import com.portofolio.talkify.repository.UserFriendsRepository;
 import com.portofolio.talkify.repository.UserGroupsRepository;
 import com.portofolio.talkify.repository.UserMessageRepository;
@@ -53,12 +54,16 @@ public class ChatService {
 
     @Autowired
     private UserGroupsRepository userGroupsRepository;
+
+    @Autowired 
+    private UserConvertaionRepository userConvertaionRepository;
    
     
-    public Map<String, Object> getUserChat (Long userId, UserConvertation userConvertation, Boolean isPinned){
+    public Map<String, Object> getUserChat (Long userId, ChatConvertation chatConvertation, Boolean isPinned){
         Map<String, Object> userChatProfile = new HashMap<>();
         Map<String, Object> profileImageResponse = new HashMap<>();
         Map<String, Object> lastMessageResponse = new HashMap<>();
+        UserConvertation userConvertation = userConvertaionRepository.findById(chatConvertation.getUserConvertationId()).orElse(null);
 
         Long userChat = userConvertation.getUserSatuId() != userId
                         ? userConvertation.getUserSatuId() 
@@ -70,7 +75,7 @@ public class ChatService {
             return null; // Jika profileUser tidak ditemukan, kembalikan null
         }
 
-        UserMessage lastMessage = this.userMessageRepository.lastMessage(userConvertation.getId());
+        UserMessage lastMessage = this.userMessageRepository.lastMessage(chatConvertation.getUserConvertationId());
 
         if (profileUser.getProfileImage() != null) {
             profileImageResponse.put("userId", profileUser.getProfileImage().getUserId());
@@ -90,9 +95,9 @@ public class ChatService {
             lastMessageResponse.put("isImage", lastMessage.getIsImage());
             userChatProfile.put("lastMessage", lastMessageResponse);
             userChatProfile.put("createdOn", lastMessage.getCreatedOn());
-        } else if (userConvertation.getIsDelete() != true && lastMessage == null) {
+        } else if (chatConvertation.getIsDelete() != true && lastMessage == null) {
             userChatProfile.put("lastMessage", lastMessage);
-            userChatProfile.put("createdOn", userConvertation.getCreatedOn());
+            userChatProfile.put("createdOn", chatConvertation.getCreatedOn());
         }
 
         // Menentukan apakah pengguna adalah teman
@@ -103,11 +108,11 @@ public class ChatService {
         }
 
         // Mengatur informasi lainnya
-        Long unSeenMessage = userMessageRepository.countFalseMessage(userConvertation.getId(), userId);
+        Long unSeenMessage = userMessageRepository.countFalseMessage(chatConvertation.getUserConvertationId(), userId);
 
         userChatProfile.put("unSeenMessage", unSeenMessage);
         userChatProfile.put("id", profileUser.getId());
-        userChatProfile.put("conversationId", userConvertation.getId());
+        userChatProfile.put("conversationId", chatConvertation.getUserConvertationId());
         userChatProfile.put("name", profileUser.getName());
         userChatProfile.put("email", profileUser.getEmail());
         userChatProfile.put("handphoneNumber", profileUser.getHandphoneNumber());

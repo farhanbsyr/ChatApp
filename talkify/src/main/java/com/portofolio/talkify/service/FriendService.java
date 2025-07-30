@@ -68,7 +68,6 @@ public class FriendService {
             userId = jwtService.extractUserId(token);
         }
 
-        System.out.println("identity: " + identity);
         User userFriend = userRepository.findFullUserByEmailOrNumber(identity); 
         if (userFriend == null) {
             return ResponseUtil.generateSuccessResponse("User is not found", userFriend, HttpStatus.NOT_FOUND);
@@ -131,9 +130,6 @@ public class FriendService {
         if (followedFriends != null) {
             isSaved = true;
         }
-        
-        // System.out.println(userId);
-        // System.out.println(friend.getId());
 
         Object profile = userService.getProfile(friend.getId());
 

@@ -18,5 +18,10 @@ public interface ChatConvertationRepository extends JpaRepository<ChatConvertati
             select * from chat_convertation cc where user_convertation_id = ?1 and user_id = ?2;
             """, nativeQuery = true)
     ChatConvertation findByUserConvertationIdAndUserId(Long userConvertationId, Long userId);
+
+    @Query(value = """
+            select * from chat_convertation cc where user_id = ?1;
+            """, nativeQuery = true)
+    List<ChatConvertation> findByUserId(Long userId);
 }
 

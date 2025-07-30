@@ -78,7 +78,7 @@ public class ApiChatController {
                 return ResponseUtil.generateErrorResponse("User is not found", userData, HttpStatus.NOT_FOUND);
             }
 
-            List<UserConvertation> userConvertations = this.userConvertaionRepository.listConvertations(userId);
+            List<ChatConvertation> chatConvertations = chatConvertationRepository.findByUserId(userId);
             Map<String, Object> response =  new HashMap<>();
 
             ArrayList<Object> pinnedResponse = new ArrayList<>();
@@ -95,17 +95,29 @@ public class ApiChatController {
                 }
             }
 
-            for (UserConvertation userConvertation : userConvertations) {
-                ChatConvertation chatConvertation =  chatConvertationRepository.findByUserConvertationIdAndUserId(userConvertation.getId(), userId);
-                
+            for (ChatConvertation chatConvertation : chatConvertations) {
                 if (chatConvertation.getIsPINNED()) {
-                    Map<String, Object> userChatProfile = chatService.getUserChat(userId, userConvertation, chatConvertation.getIsPINNED());
+                    Map<String, Object> userChatProfile = chatService.getUserChat(userId, chatConvertation, chatConvertation.getIsPINNED());
                     pinnedResponse.add(userChatProfile);
                 } else{
-                    Map<String, Object> unPinnedProfie = chatService.getUserChat(userId, userConvertation, chatConvertation.getIsPINNED());
+                    Map<String, Object> unPinnedProfie = chatService.getUserChat(userId, chatConvertation, chatConvertation.getIsPINNED());
                     unPinnedResponse.add(unPinnedProfie); 
                 }
             }
+
+            // for (UserConvertation userConvertation : userConvertations) {
+            //     System.out.println("3 nih");
+            //     ChatConvertation chatConvertation =  chatConvertationRepository.findByUserConvertationIdAndUserId(userConvertation.getId(), userId);
+                
+            //     System.out.println("sampe 4 ngga");
+            //     if (chatConvertation.getIsPINNED()) {
+            //         Map<String, Object> userChatProfile = chatService.getUserChat(userId, userConvertation, chatConvertation.getIsPINNED());
+            //         pinnedResponse.add(userChatProfile);
+            //     } else{
+            //         Map<String, Object> unPinnedProfie = chatService.getUserChat(userId, userConvertation, chatConvertation.getIsPINNED());
+            //         unPinnedResponse.add(unPinnedProfie); 
+            //     }
+            // }
 
             chatService.sortingUserChat(pinnedResponse);
             chatService.sortingUserChat(unPinnedResponse);
@@ -134,19 +146,15 @@ public class ApiChatController {
             } 
 
             Group group = groupRepository.findById(convertationId).orElse(null);
-            System.out.println("step1");
             if (group == null) {
                 return ResponseUtil.generateErrorResponse("Group is not found", group, HttpStatus.NOT_FOUND);
             }
 
-            System.out.println("disini ka?");
             ArrayList<Object> groupMessages = chatService.getGRPMessages(convertationId);
 
-            System.out.println("step2");
             if (groupMessages.size() == 0) {
                 return ResponseUtil.generateSuccessResponse("Group message is not exist", groupMessages);
             }
-            System.out.println("step3");
             return ResponseUtil.generateSuccessResponse("Success to get messages", groupMessages);  
             
         } catch (Exception e) {

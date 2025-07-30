@@ -197,9 +197,9 @@ public class ApiUserController {
             if (user == null) {
                 return ResponseUtil.generateErrorResponse("User not found", user, HttpStatus.NOT_FOUND);
             }
-            System.out.println("test");
+       
             List<UserGroups> listGroup = userGroupsRepository.listUserGroups(Long.parseLong(String.valueOf(userId)));
-            System.out.println("ok");
+   
             return ResponseUtil.generateSuccessResponse("Success to get user group", listGroup);
         } catch (Exception e) {
             return ResponseUtil.generateErrorResponse("Failed to get user group", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
