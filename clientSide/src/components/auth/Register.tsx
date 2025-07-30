@@ -126,7 +126,7 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
           className="px-10 py-5 mb-1 text-white transition duration-300 ease-in-out bg-black rounded-md hover:bg-gray-800 hover:scale-105 hover:shadow-lg active:scale-95 "
           type="submit"
         >
-          Sign In
+          Register
         </Button>
 
         <p className="text-xs">
