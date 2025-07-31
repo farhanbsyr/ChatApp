@@ -213,7 +213,8 @@ const AddFriends = () => {
               <Button
                 type="button"
                 disabled={isButtonDisabled}
-                onClick={() => {
+                onMouseDown={(e) => {
+                  e.preventDefault(); // biar button tidak menggeser fokus sebelum submit
                   handleSubmit(email);
                 }}
               >
