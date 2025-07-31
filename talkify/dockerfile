@@ -2,20 +2,23 @@
 FROM eclipse-temurin:17-jdk AS build
 
 WORKDIR /app
-
-# Copy semua file project
 COPY . .
 
-# Build jar menggunakan maven wrapper (skip tests)
+# Pastikan mvnw bisa dieksekusi
+RUN chmod +x mvnw
+
+# Build jar menggunakan Maven wrapper (skip tests)
 RUN ./mvnw clean package -DskipTests
 
-# Stage 2: Run
+# Stage 2: Run JAR
 FROM eclipse-temurin:17-jdk
-
 WORKDIR /app
 
 # Copy hasil build dari stage pertama
 COPY --from=build /app/target/*.jar app.jar
 
+# Expose port untuk Spring Boot
 EXPOSE 8080
+
+# Jalankan aplikasi
 ENTRYPOINT ["java","-jar","/app/app.jar"]
