@@ -86,13 +86,11 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
     if (!currentUnPinned) return;
 
-    let isSaved = false;
     const upadateMessage = currentUnPinned.map((chat) => {
       if (
         chat.conversationId === incomingMessage.convertationId &&
         chat.isGroup === incomingMessage.isGroup
       ) {
-        isSaved = true;
         let amountUnseenMessage = chat.unSeenMessage;
         if (convertationIdRef.current == incomingMessage.convertationId) {
           amountUnseenMessage = 0;
@@ -407,7 +405,9 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
     const subscriptionCommon = client.subscribe(
       `/topic/common`,
-      (response: any) => {}
+      (response: any) => {
+        console.log(response);
+      }
     );
 
     return () => {

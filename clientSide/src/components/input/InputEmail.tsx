@@ -7,8 +7,6 @@ interface inputTextProps {
   changValueEmail: any;
   errors?: string[];
   onFocus?: any;
-  onBlur?: any;
-  onMouseDown?: any;
 }
 
 const InputEmail: React.FC<inputTextProps> = ({
@@ -16,8 +14,6 @@ const InputEmail: React.FC<inputTextProps> = ({
   changValueEmail,
   errors,
   onFocus,
-  onBlur,
-  onMouseDown,
 }) => {
   const onChangeValue = (e: string) => {
     changValueEmail(e);

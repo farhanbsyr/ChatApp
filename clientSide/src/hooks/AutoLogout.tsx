@@ -8,7 +8,7 @@ const AutoLogout = () => {
   useEffect(() => {
     const checkToken = async () => {
       try {
-        const response = await api.get("auth/check", { withCredentials: true });
+        await api.get("auth/check", { withCredentials: true });
       } catch (err) {
         console.log("Token expired or invalid");
         navigate("/login");

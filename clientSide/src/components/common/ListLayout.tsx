@@ -53,7 +53,7 @@ const ListLayout = () => {
       </div>
 
       <div className="flex flex-col gap-2">
-        {test.map((item) => (
+        {test.map(() => (
           <Friends name="Farhan" image={profile} />
         ))}
       </div>
