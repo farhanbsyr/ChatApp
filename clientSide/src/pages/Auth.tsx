@@ -2,7 +2,6 @@ import Login from "@/components/auth/Login";
 import Register from "@/components/auth/Register";
 import { useState } from "react";
 import ilustrasi1 from "@/assets/Connected world-bro (1).svg";
-import ilustrasi2 from "@/assets/Contact us-bro (2).svg";
 const Auth = () => {
   const [isRegister, setIsRegister] = useState<boolean>(false);
 

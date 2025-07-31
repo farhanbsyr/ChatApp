@@ -416,63 +416,6 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
     };
   }, [client, profileUser]);
 
-  // const fetchAllFriendsData = async (idUser: number) => {
-  //   try {
-  //     const response = await api.get(
-  //       `http://localhost:8080/api/chat/${idUser}`,
-  //       {
-  //         withCredentials: true,
-  //       }
-  //     );
-  //     const data = response.data.data;
-
-  //     const unPinned: userChat[] = data.unPinned.map((item: userChat) => ({
-  //       id: item.id,
-  //       name: item.name,
-  //       email: item.email,
-  //       handphoneNumber: item.handphoneNumber,
-  //       profileImage: item.profileImage,
-  //       lastMessage: item.lastMessage,
-  //       userFriends: item.userFriends,
-  //       pinned: item.pinned,
-  //       isGroup: item.isGroup,
-  //       createdOn: item.createdOn,
-  //       conversationId: item.conversationId,
-  //       userGroup: item.userGroupId,
-  //       memberGroup: item.memberGroup,
-  //       unSeenMessage: item.unSeenMessage,
-  //     }));
-  //     setUnPinnedMessage(sortedMsg(unPinned));
-
-  //     const pinned: userChat[] = data.pinned.map((item: userChat) => ({
-  //       id: item.id,
-  //       name: item.name,
-  //       email: item.email,
-  //       handphoneNumber: item.handphoneNumber,
-  //       profileImage: item.profileImage,
-  //       lastMessage: item.lastMessage,
-  //       userFriends: item.userFriends,
-  //       pinned: item.pinned,
-  //       isGroup: item.isGroup,
-  //       createdOn: item.createdOn,
-  //       conversationId: item.conversationId,
-  //       userGroup: item.userGroupId,
-  //       memberGroup: item.memberGroup,
-  //       unSeenMessage: item.unSeenMessage,
-  //     }));
-  //     setPinnedMessage(sortedMsg(pinned));
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   if (profileUser.id != null) {
-  //     fetchAllFriendsData(profileUser.id);
-  //   }
-  //   console.log("apakah akan berubah terus?" + profile);
-  // }, [profileUser]);
-
   useEffect(() => {
     if (convertationId != null) {
       fetchMessageChat(typeConvertation);
@@ -484,10 +427,7 @@ const ContentLayout: React.FC<ContentLayoutProps> = ({
 
     try {
       const response = await api.get(
-        `http://localhost:8080/api/chat/getMessage/${convertationId}?message=${messageTYPE}`,
-        {
-          withCredentials: true,
-        }
+        `chat/getMessage/${convertationId}?message=${messageTYPE}`
       );
 
       const data = response.data.data;

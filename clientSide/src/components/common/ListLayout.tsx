@@ -1,13 +1,13 @@
 import { useEffect } from "react";
-import axios from "axios";
 import profile from "@/assets/muhammadAli.jpg";
 import Friends from "../Friends/Friends";
+import api from "@/api/axiosApi";
 const ListLayout = () => {
   let value: number = 1;
   const test: number[] = [1, 2, 3];
   const fetchAllFriendsData = async (value: number) => {
     try {
-      await axios.get(`http://localhost:8080/api/user/friend/${value}`);
+      await api.get(`user/friend/${value}`);
     } catch (error) {
       console.log(error);
     }

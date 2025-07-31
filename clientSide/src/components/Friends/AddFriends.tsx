@@ -32,11 +32,7 @@ const AddFriends = () => {
 
   const addFriends = async (identity: string) => {
     try {
-      await api.post(
-        "friend/addFriend",
-        { identity: identity },
-        { withCredentials: true }
-      );
+      await api.post("friend/addFriend", { identity: identity });
 
       setOpen(false);
       toast.success("Friend added successfully!");
@@ -53,11 +49,9 @@ const AddFriends = () => {
 
   const searchFriends = async (identity: string) => {
     try {
-      const response: any = await api.post(
-        "friend/searchFriend",
-        { identity: identity },
-        { withCredentials: true }
-      );
+      const response: any = await api.post("friend/searchFriend", {
+        identity: identity,
+      });
 
       setFriend(response.data.data);
       setIsFriend(true);

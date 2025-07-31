@@ -3,9 +3,9 @@ import { Button } from "../ui/button";
 import InputEmail from "../input/InputEmail";
 import InputPassword from "../input/InputPassword";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { loginSchema } from "@/schemas/auth/loginSchema";
 import { toast } from "sonner";
+import api from "@/api/axiosApi";
 
 interface LoginProps {
   isRegister: any;
@@ -22,23 +22,12 @@ const Login: React.FC<LoginProps> = ({ isRegister }) => {
 
   const postLogin = async (username: string, password: string) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/login",
-        {
-          username,
-          password,
-        },
-        {
-          withCredentials: true,
-        }
-      );
+      await api.post("auth/login", { username, password });
 
       setEmail("");
       setPassword("");
       setErrors({});
-      console.log("Login sukses:", response.data);
       navigate("/");
-      return response.data;
     } catch (error: any) {
       console.log(error);
 

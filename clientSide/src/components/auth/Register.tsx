@@ -30,19 +30,12 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
     password: string
   ) => {
     try {
-      const response = await api.post(
-        "auth/register",
-        {
-          name: username,
-          email,
-          handphoneNumber,
-          password,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-      console.log(response);
+      await api.post("auth/register", {
+        name: username,
+        email,
+        handphoneNumber,
+        password,
+      });
     } catch (error) {
       console.log(error);
     }
@@ -72,7 +65,6 @@ const Register: React.FC<RegisterProps> = ({ isRegister }) => {
     }
 
     postRegister(username, email, nomor, password);
-    console.log(email + " dan " + password);
 
     setUsername("");
     setNomor("");

@@ -3,7 +3,7 @@ import axios from "axios";
 const refreshApi = async () => {
   try {
     const response = await axios.post(
-      "http://localhost:8080/api/token/refresh",
+      `${import.meta.env.VITE_API_URL}/api/token/refresh`,
       null,
       {
         withCredentials: true,

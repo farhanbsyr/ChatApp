@@ -16,8 +16,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "@/api/axiosApi";
 
 interface SidebarCosProps {
   menu: any;
@@ -56,13 +56,7 @@ const SidebarCos: React.FC<SidebarCosProps> = ({ menu, contactNotif }) => {
 
   const logout = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/logout",
-        null,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await api.post("auth/logout", null);
 
       if (response.data.message === "logout sukses") {
         navigate("/login");

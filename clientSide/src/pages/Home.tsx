@@ -90,7 +90,7 @@ const Home = () => {
     if (userId == null) return;
 
     const client = new Client({
-      brokerURL: "ws://localhost:8080/ws",
+      brokerURL: import.meta.env.VITE_WS_URL,
       onConnect: () => {
         console.log("connected!");
         setConnectedClient(client);
@@ -155,9 +155,7 @@ const Home = () => {
 
   const getFriendRequest = async () => {
     try {
-      const response = await api.get("/friend/getFriendRequest", {
-        withCredentials: true,
-      });
+      const response = await api.get("/friend/getFriendRequest");
 
       if (response.data.data.length > 0) {
         // setFriendRequestDropdown(true);
@@ -172,9 +170,7 @@ const Home = () => {
 
   const getFriend = async () => {
     try {
-      const response = await api.get("/friend/getFriend", {
-        withCredentials: true,
-      });
+      const response = await api.get("/friend/getFriend");
 
       setFriend(response.data.data);
     } catch (error) {
@@ -184,9 +180,7 @@ const Home = () => {
 
   const getUserGroup = async () => {
     try {
-      const response = await api.get("/group/userGroup", {
-        withCredentials: true,
-      });
+      const response = await api.get("/group/userGroup");
 
       setGroup(response.data.data);
     } catch (error) {
@@ -209,12 +203,7 @@ const Home = () => {
 
   const fetchAllFriendsData = async (idUser: number) => {
     try {
-      const response = await api.get(
-        `http://localhost:8080/api/chat/${idUser}`,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await api.get(`chat/${idUser}`);
       const data = response.data.data;
 
       const unPinned: userChat[] = data.unPinned.map((item: userChat) => ({
@@ -261,7 +250,6 @@ const Home = () => {
     if (profile != null) {
       fetchAllFriendsData(profile.id);
     }
-    console.log("apakah akan berubah terus?" + profile);
   }, [profile]);
 
   return (
