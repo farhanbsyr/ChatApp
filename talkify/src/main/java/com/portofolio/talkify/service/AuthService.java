@@ -50,7 +50,7 @@ public class AuthService {
                     .secure(true)
                     .path("/")
                     .maxAge(expiredAccessToken)
-                    .sameSite("Strict")
+                    .sameSite("None")
                     .build();
     
                 // ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
@@ -92,7 +92,7 @@ public class AuthService {
                 .secure(true)
                 .path("/")
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
             return ResponseEntity.ok()
