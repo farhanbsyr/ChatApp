@@ -1,14 +1,21 @@
-# Gunakan Java JDK 17
-FROM eclipse-temurin:17-jdk
+# Stage 1: Build JAR
+FROM eclipse-temurin:17-jdk AS build
 
-# Set direktori kerja di container
 WORKDIR /app
 
-# Copy file .jar hasil build
-COPY target/*.jar app.jar
+# Copy semua file project
+COPY . .
 
-# Expose port default Spring Boot
+# Build jar menggunakan maven wrapper (skip tests)
+RUN ./mvnw clean package -DskipTests
+
+# Stage 2: Run
+FROM eclipse-temurin:17-jdk
+
+WORKDIR /app
+
+# Copy hasil build dari stage pertama
+COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8080
-
-# Jalankan Spring Boot
 ENTRYPOINT ["java","-jar","/app/app.jar"]
