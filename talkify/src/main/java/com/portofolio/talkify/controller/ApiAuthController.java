@@ -19,7 +19,6 @@ import com.portofolio.talkify.utility.ApiResponse;
 import com.portofolio.talkify.utility.ResponseUtil;
 
 @RestController
-@CrossOrigin("*")
 @RequestMapping("/api/auth")
 public class ApiAuthController {
 

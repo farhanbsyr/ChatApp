@@ -21,7 +21,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @RestController
-@CrossOrigin("*")
 @RequestMapping("/api/friend")
 public class ApiFriendController {
 
